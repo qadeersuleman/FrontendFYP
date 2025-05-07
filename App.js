@@ -12,6 +12,7 @@ import WelcomeScreen from './app/Screen/WelcomeScreens/WelcomeScreen';
 import SplashScreen from './app/Screen/SplashScreen';
 import Login from './app/Screen/Authentication/Login';
 import Signup from './app/Screen/Authentication/Signup';
+import ForgetPassword from './app/Screen/Authentication/ForgetPassword';
 
 // Third Party App
 
@@ -34,14 +35,18 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown : false}} />
         <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown : false }} />
-        <Stack.Screen name="CamerView" component={MentalHealth} options={{ headerShown : false }} />
+        {/* <Stack.Screen name="CamerView" component={MentalHealth} options={{ headerShown : false }} /> */}
         <Stack.Screen name="Login" component={Login} options={{ headerShown : false }} />
         <Stack.Screen name="Signup" component={Signup} options={{ headerShown : false }} />
+        <Stack.Screen name="ForgetPassword" component={ForgetPassword} options={{ headerShown : false }} />
       </Stack.Navigator>
     </NavigationContainer>
 
     // <Signup />
     // <Login />
+    // <ForgetPassword />
+ 
+   
     
   );
 }

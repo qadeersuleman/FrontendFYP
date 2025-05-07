@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Image,
   Alert,
+  Pressable,
 } from "react-native";
 import { Colors } from "../../assets/colors";
 import { MaterialIcons, FontAwesome, Ionicons } from "@expo/vector-icons";
@@ -197,9 +198,11 @@ const Login = ({ navigation }) => {
             </Text>
             </TouchableOpacity>
           </Text>
+          <Pressable onPress={() => navigation.navigate("ForgetPassword")}>
           <Text style={[Fonts.buttonSecondary, { color: Colors.secondary, textAlign: 'center' }]}>
             Forgot Password
           </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -223,10 +226,11 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 12,
   },
+  
   logoContainer: {
     width: "100%",
     height: 200,
-    backgroundColor: "rgb(240, 240, 240)",
+    backgroundColor: Colors.primary,
     borderBottomLeftRadius: 120,
     borderBottomRightRadius: 120,
     justifyContent: "center",
