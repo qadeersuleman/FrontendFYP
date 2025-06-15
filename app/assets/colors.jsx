@@ -1,47 +1,98 @@
-// colors.js - Color palette for AI Mental Health App
+// colors.js - Professional Color Palette for AI Mental Health App
 export const Colors = {
-    // Primary Colors
-    primary: '#4E7AC7',      // Calming blue (main brand color)
-    primaryDark: '#3A5F9A',  // Darker shade for contrast
-    primaryLight: '#6B8FD4', // Lighter shade for highlights
-    
-    // Secondary Colors
-    secondary: '#6AC3C9',    // Teal for accents
-    secondaryDark: '#4FA8AE',
-    secondaryLight: '#8AD8DD',
-    
-    // Background & Surface Colors
-    background: '#F8FAFC',   // Very light gray background
-    surface: '#FFFFFF',      // White for cards/surfaces
-    surfaceDark: '#F0F2F5',  // Slightly darker for contrast
-    
-    // Text Colors
-    textPrimary: '#2D3748',  // Dark gray for primary text
-    textSecondary: '#4A5568',// Medium gray for secondary text
-    textTertiary: '#718096', // Light gray for hints/disabled
-    textOnPrimary: '#FFFFFF',// White text on primary colored buttons
-    
-    // Status Colors
-    success: '#48BB78',      // Green for success states
-    warning: '#ED8936',      // Orange for warnings
-    error: '#F56565',        // Red for errors
-    info: '#4299E1',         // Blue for informational
-    
-    // Special Colors
-    meditation: '#9F7AEA',   // Purple for meditation features
-    moodTracker: '#F687B3',  // Pink for mood tracking
-    journal: '#68D391',      // Green for journal features
-    aiHighlight: '#F6AD55',  // Orange for AI interactions
-    
-    // Gradients
-    gradientPrimary: ['#4E7AC7', '#6AC3C9'], // Blue to teal
-    gradientCalm: ['#6AC3C9', '#9F7AEA'],    // Teal to purple
-    gradientEnergy: ['#F6AD55', '#F687B3'],  // Orange to pink
-    
-    // Additional UI Colors
-    border: '#E2E8F0',       // Light gray for borders
-    shadow: 'rgba(0,0,0,0.1)', // Subtle shadow
-    overlay: 'rgba(0,0,0,0.5)', // For modals/overlays
-  };
+  // Core Brand Colors
+  brand: {
+      primary: '#4E7AC7',       // Calming blue (main brand color)
+      primaryDark: '#3A5F9A',   // Darker shade for contrast
+      primaryLight: '#6B8FD4',  // Lighter shade for highlights
+      primaryPastel: '#E8EFF9', // Very light for subtle backgrounds
+  },
   
-  export default Colors;
+  // Secondary Colors
+  accent: {
+      teal: '#5EC8D8',         // Refreshed teal for accents
+      tealDark: '#3EA4B5',
+      tealLight: '#8EDCE8',
+      tealPastel: '#E6F7FA',
+      
+      lavender: '#957FEF',      // Soft purple for mindfulness features
+      lavenderDark: '#7A65D6',
+      lavenderLight: '#B19BFF',
+      
+      coral: '#FF7B7B',        // Warm color for emotional features
+      coralDark: '#E05C5C',
+      coralLight: '#FF9D9D',
+  },
+  
+  // Neutral Colors
+  neutrals: {
+      white: '#FFFFFF',
+      background: '#F9FBFF',   // Very light blue-tinged background
+      surface: '#FFFFFF',       // White for cards/surfaces
+      surfaceLow: '#F2F5FA',    // Slightly darker for contrast
+      border: '#E3E9F2',        // Light gray-blue for borders
+      divider: '#EDF1F7',       // Very subtle dividers
+  },
+  
+  // Text Colors
+  text: {
+      primary: '#2D3748',       // Dark blue-gray for primary text
+      secondary: '#4A5568',     // Medium gray for secondary text
+      tertiary: '#718096',      // Light gray for hints/disabled
+      inverted: '#FFFFFF',      // White text on colored backgrounds
+      disabled: '#CBD5E0',      // Very light gray for disabled states
+      link: '#4E7AC7',         // Brand color for links
+  },
+  
+  // Status Colors
+  status: {
+      success: '#4FD1A6',       // Vibrant teal-green for success
+      successLight: '#E6FCF7',
+      warning: '#FFB74D',       // Soft orange for warnings
+      warningLight: '#FFF5E6',
+      error: '#FF6B6B',        // Soft red for errors
+      errorLight: '#FFEEEE',
+      info: '#64B5F6',         // Light blue for information
+      infoLight: '#EBF5FF',
+  },
+  
+  // Feature-Specific Colors
+  features: {
+      meditation: '#957FEF',    // Lavender for meditation
+      mindfulness: '#A78BFA',   // Light purple for mindfulness
+      mood: '#FF9E7D',          // Warm peach for mood tracking
+      journal: '#6DD3A4',      // Fresh green for journaling
+      ai: '#FFB347',            // Golden yellow for AI interactions
+      community: '#5EC8D8',     // Teal for social features
+  },
+  
+  // Gradients
+  gradients: {
+      primary: ['#4E7AC7', '#5EC8D8'],       // Brand blue to teal
+      calm: ['#5EC8D8', '#957FEF'],          // Teal to lavender
+      energy: ['#FFB347', '#FF7B7B'],        // Gold to coral
+      sunrise: ['#FF9E7D', '#FFB347'],       // Mood gradient
+      twilight: ['#4E7AC7', '#957FEF'],      // Evening calm
+  },
+  
+  // UI Elements
+  ui: {
+      shadow: 'rgba(46, 52, 64, 0.08)',      // Subtle shadow
+      shadowDark: 'rgba(46, 52, 64, 0.15)',  // Deeper shadow
+      overlay: 'rgba(45, 55, 72, 0.6)',      // For modals/overlays
+      backdrop: 'rgba(249, 251, 255, 0.8)',  // For frosted glass effects
+  },
+  
+  // Data Visualization
+  dataViz: {
+      blue: '#4E7AC7',
+      teal: '#5EC8D8',
+      purple: '#957FEF',
+      pink: '#FF7B7B',
+      orange: '#FFB347',
+      green: '#6DD3A4',
+      yellow: '#FFD166',
+  }
+};
+
+export default Colors;
