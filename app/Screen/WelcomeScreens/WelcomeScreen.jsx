@@ -10,6 +10,8 @@ import {
 } from '@expo-google-fonts/poppins';
 import { Inter_400Regular } from '@expo-google-fonts/inter';
 import { Lora_400Regular_Italic } from '@expo-google-fonts/lora';
+import Icon from 'react-native-vector-icons/Feather';
+
 const { width, height } = Dimensions.get('window');
 
 const WelcomeScreen = ({ navigation }) => {
@@ -87,9 +89,7 @@ const WelcomeScreen = ({ navigation }) => {
           end={{ x: 1, y: 0 }}
         >
           <Text style={[styles.buttonText, { fontFamily: 'Poppins-SemiBold' }]}>Get Started</Text>
-          <View style={styles.arrowIcon}>
-              <Text style={[styles.buttonText, {fontFamily : 'Poppins-SemiBold'}]}>→</Text>
-            </View>
+          <Icon name="arrow-right" size={20} color="white" style={styles.arrowIcon} />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -112,37 +112,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    marginBottom: height * 0.01,
+    marginBottom: height * 0.05,
+    width: '100%',
+    alignItems: 'center',
   },
   logo: {
-    width: width * 1,
-    height: width * 0.5 * 1,
+    width: width * 0.8,
+    height: width * 0.4,
+    maxWidth: 400,
+    maxHeight: 200,
     tintColor: Colors.primary,
   },
   content: {
     alignItems: 'center',
-    marginBottom: height * 0.1,
+    marginBottom: height * 0.08,
+    width: '100%',
   },
   heading: {
-    fontSize: 14,
+    fontSize: width > 400 ? 16 : 14,
     color: '#666',
     letterSpacing: 2,
     marginBottom: 8,
   },
   title: {
-    fontSize: 42,
-    color: Colors.primary,
+    fontSize: width > 400 ? 42 : 36,
+    color: Colors.brand.primary,
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: width > 400 ? 16 : 14,
     color: '#666',
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: width * 0.1,
+    paddingHorizontal: width * 0.05,
   },
   button: {
     width: width * 0.8,
+    maxWidth: 350,
     borderRadius: 30,
     overflow: 'hidden',
     shadowColor: Colors.primary,
@@ -150,33 +156,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 8,
+    marginBottom: height * 0.05,
   },
   gradient: {
     paddingVertical: 16,
+    paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection : "row"
+    flexDirection: 'row'
   },
   arrowIcon: {
-    marginLeft: 20,
-    marginTop : -1.5,
+    marginLeft: 10,
   },
   buttonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: width > 400 ? 18 : 16,
     letterSpacing: 0.5,
   },
   footer: {
     position: 'absolute',
     bottom: height * 0.05,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   footerText: {
     color: '#666',
-    fontSize: 14,
+    fontSize: width > 400 ? 14 : 12,
   },
   footerLink: {
     color: Colors.primary,
+    fontSize: width > 400 ? 14 : 12,
   },
 });
 

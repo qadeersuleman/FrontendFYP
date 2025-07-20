@@ -4,7 +4,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import Colors from '../assets/colors';
 
 const AppButton = ({ 
-  text = "Continue →", 
+  text = "Continue", 
   onPress, 
   style = {},
   textStyle = {},

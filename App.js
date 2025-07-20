@@ -21,6 +21,8 @@ import LottieCentered from './LottieCentered';
 import AgeSelection from './app/Screen/Assesment/AgeSelection';
 import WeightSelection from './app/Screen/Assesment/WeightSelection';
 import New from './New';
+import MoodAssessment from './app/Screen/Assesment/Mood';
+import SleepQuality from './app/Screen/Assesment/SleepQuality';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,7 +42,7 @@ export default function App() {
     //   <Stack.Navigator>
     //     <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown : false}} />
     //     <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown : false }} />
-    //     {/* <Stack.Screen name="CamerView" component={MentalHealth} options={{ headerShown : false }} /> */}
+        
     //     <Stack.Screen name="Login" component={Login} options={{ headerShown : false }} />
     //     <Stack.Screen name="Signup" component={Signup} options={{ headerShown : false }} />
     //     <Stack.Screen name="ForgetPassword" component={ForgetPassword} options={{ headerShown : false }} />
@@ -57,8 +59,11 @@ export default function App() {
     {/* <HealthGoal /> */}
       {/* <AgeSelection /> */}
     {/* <LottieCentered /> */}
-    <WeightSelection />
+    {/* <WeightSelection /> */}
+    {/* <MoodAssessment /> */}
+    <SleepQuality />
     {/* <New /> */}
+    {/* <SplashScreen /> */}
   </GestureHandlerRootView>
  
    

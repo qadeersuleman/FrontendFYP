@@ -75,7 +75,7 @@ const HealthGoal = ({ navigation }) => {
       ) : (
         <View style={styles.disabledButtonContainer}>
           <AppButton
-            text="Continue →" 
+            text="Continue" 
             onPress={() => {}}
             style={styles.continueButtonInactive}
           />

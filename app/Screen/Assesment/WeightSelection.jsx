@@ -1,6 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+// React Native imports
+import { useState, useRef } from 'react';
+import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+
+
+// Third-party imports
 import Colors from '../../assets/colors';
 import Headers from '../../components/Assesment/Header';
 import AppButton from '../../components/AppButton';
@@ -86,7 +90,7 @@ const WeightSelection = ({ navigation }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <AppButton onPress={() => navigation.navigate('NextScreen')} />
+        <AppButton onPress={() => navigation.navigate('NextScreen')} text='Continue' />
       </View>
     </View>
   );
@@ -102,7 +106,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignSelf: 'center',
     marginTop: -40,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: Colors.neutrals.surfaceLow,
     borderRadius: 25,
     padding: 5,
   },
@@ -112,14 +116,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   unitActive: {
-    backgroundColor: Colors.brand.primaryLight,
+    backgroundColor: Colors.brand.primary,
   },
   unitText: {
     fontSize: 16,
-    color: '#555',
+    color: Colors.text.secondary,
   },
   unitTextActive: {
-    color: '#fff',
+    color: Colors.text.inverted,
     fontWeight: 'bold',
   },
   selectedWeightText: {
@@ -132,7 +136,7 @@ const styles = StyleSheet.create({
   unitLabel: {
     fontSize: 20,
     fontWeight: '400',
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   sliderWrapper: {
     alignItems: 'center',
@@ -157,15 +161,26 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 18,
-    color: '#aaa',
+    color: Colors.text.tertiary,
   },
   selectedItemText: {
     fontSize: 36,
-    color: '#fff',
+    color: Colors.text.inverted,
     fontWeight: 'bold',
   },
   buttonContainer: {
     marginBottom: 120,
+  },
+  centerIndicator: {
+    position: 'absolute',
+    height: 80,
+    width: ITEM_WIDTH,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: Colors.brand.primary,
+    borderRadius: ITEM_WIDTH / 2,
+    top: '50%',
+    marginTop: -40,
   },
 });
 

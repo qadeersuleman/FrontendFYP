@@ -1,191 +1,211 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing, Image, Dimensions } from 'react-native';
-
+import { View, StyleSheet, Animated, Easing, Image, Dimensions, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-const SplashScreen = ({ onComplete, navigation }) => {
-  // Calculate the diagonal of the screen to ensure full coverage
-  const screenDiagonal = Math.sqrt(width * width + height * height);
+const ModernSplashScreen = ({ navigation }) => {
+  // Animation values
+  const gradientScale = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoPosition = useRef(new Animated.Value(height * 0.4)).current;
+  const progressWidth = useRef(new Animated.Value(0)).current;
+  const dotsOpacity = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+  const gradientOpacity = useRef(new Animated.Value(0)).current;
   
-  // Animation refs
-  const spreadAnim = useRef(new Animated.Value(0)).current;
-  const logoScaleAnim = useRef(new Animated.Value(0.5)).current;
-  const logoOpacityAnim = useRef(new Animated.Value(0)).current;
-  const logoMoveAnim = useRef(new Animated.Value(0)).current;
-  const percentageAnim = useRef(new Animated.Value(1)).current;
-  const spinnerRotateAnim = useRef(new Animated.Value(0)).current;
-  const counterOpacityAnim = useRef(new Animated.Value(0)).current;
+  const [progressText, setProgressText] = useState('Starting');
+  const [currentDot, setCurrentDot] = useState(0);
 
-  const [percentage, setPercentage] = useState(0);
-
+  // Dot animation sequence
   useEffect(() => {
-    // Step 1: Spread animation (5 seconds)
-    Animated.timing(spreadAnim, {
-      toValue: 1,
-      duration: 2500,
-      easing: Easing.out(Easing.exp),
-      useNativeDriver: true,
-    }).start(() => {
-      // Step 2: Logo appears
+    const dotInterval = setInterval(() => {
+      setCurrentDot(prev => (prev + 1) % 4);
+    }, 400);
+
+    return () => clearInterval(dotInterval);
+  }, []);
+
+  // Main animation sequence
+  useEffect(() => {
+    // 1. Gradient background scale in
+    Animated.parallel([
+      Animated.timing(gradientScale, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      }),
+      Animated.timing(gradientOpacity, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      })
+    ]).start();
+
+    // 2. Logo animation sequence
+    Animated.sequence([
+      Animated.delay(300),
       Animated.parallel([
-        Animated.timing(logoScaleAnim, {
+        Animated.timing(logoOpacity, {
           toValue: 1,
           duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoScale, {
+          toValue: 1,
+          duration: 800,
           easing: Easing.elastic(1),
           useNativeDriver: true,
         }),
-        Animated.timing(logoOpacityAnim, {
-          toValue: 1,
-          duration: 400,
+        Animated.timing(logoPosition, {
+          toValue: height * 0.3,
+          duration: 1000,
+          easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        // Step 3: Move logo up slightly after a delay
-        setTimeout(() => {
-          Animated.timing(logoMoveAnim, {
-            toValue: -50,
-            duration: 600,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }).start();
-        }, 1000);
+      ]),
+    ]).start();
 
-        // Step 4: Show spinner and counter
-        Animated.parallel([
-          Animated.timing(counterOpacityAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.loop(
-            Animated.timing(spinnerRotateAnim, {
-              toValue: 1,
-              duration: 1000,
-              easing: Easing.linear,
-              useNativeDriver: true,
-            })
-          ),
-        ]).start();
+    // 3. Progress bar and dots animation
+    Animated.sequence([
+      Animated.delay(1200),
+      Animated.timing(dotsOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(progressWidth, {
+        toValue: width * 0.7,
+        duration: 2500,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }),
+    ]).start();
 
-        // Step 5: Animate percentage counter
-        const duration = 1500;
-        let start = null;
+    // 4. Progress text updates
+    const progressUpdates = [
+      { time: 500, text: 'Loading assets' },
+      { time: 1200, text: 'Preparing UI' },
+      { time: 1900, text: 'Finalizing' },
+      { time: 2500, text: 'Ready' },
+    ];
 
-        const animateCounter = (timestamp) => {
-          if (!start) start = timestamp;
-          const progress = Math.min((timestamp - start) / duration, 1);
-          const count = Math.floor(progress * 100);
-          setPercentage(count);
+    const startTime = Date.now();
+    const updateInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const update = progressUpdates.find(u => elapsed <= u.time);
+      if (update) setProgressText(update.text);
+    }, 100);
 
-          // Add bounce effect every 10%
-          if (count % 10 === 0 && count !== 0) {
-            Animated.sequence([
-              Animated.timing(percentageAnim, {
-                toValue: 1.2,
-                duration: 200,
-                useNativeDriver: true,
-              }),
-              Animated.timing(percentageAnim, {
-                toValue: 1,
-                duration: 100,
-                useNativeDriver: true,
-              }),
-            ]).start();
-          }
-
-          if (progress < 1) {
-            requestAnimationFrame(animateCounter);
-          } else {
-            setTimeout(onComplete, 300);
-          }
-        };
-
-        requestAnimationFrame(animateCounter);
+    // 5. Final content fade in
+    setTimeout(() => {
+      Animated.timing(contentOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => {
+        setTimeout(() => navigation.navigate('WelcomeScreen'), 800);
       });
-    });
+      clearInterval(updateInterval);
+    }, 3000);
   }, []);
 
-  useEffect(() => {
-    if (percentage === 100) {
-      // Add slight delay if needed
-      const timeout = setTimeout(() => {
-        navigation.navigate('WelcomeScreen');
-      }, 300);
-  
-      return () => clearTimeout(timeout);
-    }
-  }, [percentage]);
-  
-
-  // Interpolations
-  const rotateInterpolation = spinnerRotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const dots = [0, 1, 2, 3].map(i => (
+    <Animated.Text
+      key={i}
+      style={[
+        styles.dot,
+        {
+          opacity: currentDot === i ? dotsOpacity.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.3, 1]
+          }) : dotsOpacity.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.3, 0.5]
+          }),
+          transform: [{
+            scale: currentDot === i ? 
+              dotsOpacity.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.8, 1.2]
+              }) : 1
+          }]
+        }
+      ]}
+    >
+      •
+    </Animated.Text>
+  ));
 
   return (
     <View style={styles.container}>
-      {/* Background spread effect - covers full screen */}
-      <Animated.View
-        style={[
-          styles.spreadEffect,
-          {
-            width: screenDiagonal,
-            height: screenDiagonal,
-            borderRadius: screenDiagonal / 2,
-            transform: [
-              { 
-                scale: spreadAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 1]
-                })
-              }
-            ],
-            backgroundColor: '#0F1C3F',
-          },
-        ]}
-      />
+      {/* Animated gradient background */}
+      <Animated.View style={[
+        styles.gradientContainer,
+        {
+          opacity: gradientOpacity,
+          transform: [{
+            scale: gradientScale.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.8, 1.2]
+            })
+          }]
+        }
+      ]}>
+        <LinearGradient
+          colors={['#0F2027', '#203A43', '#2C5364']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        />
+      </Animated.View>
 
       {/* Logo with animations */}
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: logoOpacityAnim,
-            transform: [
-              { scale: logoScaleAnim },
-              { translateY: logoMoveAnim },
-            ],
-          },
-        ]}
-      >
+      <Animated.View style={[
+        styles.logoContainer,
+        {
+          opacity: logoOpacity,
+          transform: [
+            { scale: logoScale },
+            { translateY: logoPosition }
+          ]
+        }
+      ]}>
         <Image
-          source={require('../assets/images/logo.png')}
+          source={require('../assets/images/logo.png')} // Replace with your logo
           style={styles.logo}
           resizeMode="contain"
         />
       </Animated.View>
 
-      {/* Spinner and percentage counter */}
-      <Animated.View
-        style={[styles.counterContainer, { opacity: counterOpacityAnim }]}
-      >
-        <Animated.Image
-          source={require('../assets/images/spiner.png')}
-          style={[
-            styles.spinner,
-            { transform: [{ rotate: rotateInterpolation }] },
-          ]}
-        />
-        <Animated.Text
-          style={[
-            styles.percentage,
-            { transform: [{ scale: percentageAnim }] },
-          ]}
-        >
-          {percentage}%
+      {/* Progress section */}
+      <View style={styles.progressContainer}>
+        <Animated.Text style={[styles.progressText, { opacity: dotsOpacity }]}>
+          {progressText}
+          {dots}
         </Animated.Text>
+        
+        <View style={styles.progressBarBackground}>
+          <Animated.View style={[
+            styles.progressBar,
+            { width: progressWidth }
+          ]}>
+            <LinearGradient
+              colors={['#4A8AFF', '#9B4DFF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.progressBarFill}
+            />
+          </Animated.View>
+        </View>
+      </View>
+
+      {/* Final content that fades in */}
+      <Animated.View style={[styles.content, { opacity: contentOpacity }]}>
+        <Text style={styles.welcomeText}>Welcome to</Text>
+        <Text style={styles.appName}>YourApp</Text>
       </Animated.View>
     </View>
   );
@@ -194,41 +214,80 @@ const SplashScreen = ({ onComplete, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: '#0A0E23',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
-  spreadEffect: {
+  gradientContainer: {
     position: 'absolute',
-    alignSelf: 'center',
+    width: width * 1.5,
+    height: height * 1.5,
+  },
+  gradient: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.9,
   },
   logoContainer: {
     position: 'absolute',
-    zIndex: 2,
-  },
-  logo: {
-    width: 250,
-    height: 250,
-  },
-  counterContainer: {
-    position: 'absolute',
-    bottom: '20%',
-    width: 80,
-    height: 80,
-    justifyContent: 'center',
     alignItems: 'center',
   },
-  spinner: {
-    width: 120,
-    height: 120,
-    position: 'absolute',
+  logo: {
+    width: 180,
+    height: 180,
+    tintColor: '#FFF', // Optional: if you want to color your logo
   },
-  percentage: {
-    fontSize: 24,
-    color: 'white',
+  progressContainer: {
+    position: 'absolute',
+    bottom: height * 0.2,
+    width: '80%',
+    alignItems: 'center',
+  },
+  progressText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 16,
+    marginBottom: 15,
     fontWeight: '300',
+    letterSpacing: 0.5,
+  },
+  dot: {
+    fontSize: 24,
+    color: '#FFF',
+    marginHorizontal: 2,
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    width: '100%',
+    height: '100%',
+  },
+  content: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  welcomeText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 18,
+    fontWeight: '300',
+    marginBottom: 5,
+  },
+  appName: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
 });
 
-export default SplashScreen;
+export default ModernSplashScreen;
