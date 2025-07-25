@@ -8,56 +8,29 @@ import {
   PanResponder,
   Easing,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Colors from '../../assets/colors';
+import Headers from '../../components/Assesment/Header';
+import Title from '../../components/Assesment/Title';
+import AppButton from '../../components/AppButton';
 
 const sleepLevels = [
-  { 
-    label: 'Excellent', 
-    hours: '7-9 hours', 
-    emoji: '😊', 
-    color: '#6FCF97',
-    description: 'Restful and refreshing sleep'
-  },
-  { 
-    label: 'Good', 
-    hours: '6-7 hours', 
-    emoji: '🙂', 
-    color: '#F2C94C',
-    description: 'Mostly restful sleep'
-  },
-  { 
-    label: 'Fair', 
-    hours: '5 hours', 
-    emoji: '😐', 
-    color: '#BDBDBD',
-    description: 'Somewhat restful sleep'
-  },
-  { 
-    label: 'Poor', 
-    hours: '3-4 hours', 
-    emoji: '😟', 
-    color: '#EB5757',
-    description: 'Fragmented and light sleep'
-  },
-  { 
-    label: 'Worst', 
-    hours: '<3 hours', 
-    emoji: '😵', 
-    color: '#9B51E0',
-    description: 'Very little or no sleep'
-  },
+  { label: 'Excellent', hours: '7-9 hours', emoji: '😊', color: Colors.status.success, description: 'Restful and refreshing sleep' },
+  { label: 'Good', hours: '6-7 hours', emoji: '🙂', color: Colors.features.journal, description: 'Mostly restful sleep' },
+  { label: 'Fair', hours: '5 hours', emoji: '😐', color: Colors.accent.teal, description: 'Somewhat restful sleep' },
+  { label: 'Worst', hours: '3-4 hours', emoji: '😟', color: Colors.features.mood, description: 'Fragmented and light sleep' },
 ];
 
 const TRACK_HEIGHT = 300;
-const THUMB_SIZE = 36;
-const SEGMENT_HEIGHT = TRACK_HEIGHT / (sleepLevels.length - 1);
+const SEGMENT_HEIGHT = TRACK_HEIGHT / (sleepLevels.length);
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export default function SleepQualitySlider() {
+export default function SleepQualitySlider({ navigation }) {
   const middleIndex = Math.floor(sleepLevels.length / 2);
   const [selectedIndex, setSelectedIndex] = useState(middleIndex);
   const pan = useRef(new Animated.Value(selectedIndex * SEGMENT_HEIGHT)).current;
-  const [isDragging, setIsDragging] = useState(false);
   
   const descriptionOpacity = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -66,7 +39,7 @@ export default function SleepQualitySlider() {
   const animateSelection = (index) => {
     const newYValue = index * SEGMENT_HEIGHT;
     const scaleYValue = index / (sleepLevels.length - 1);
-    
+
     Animated.parallel([
       Animated.timing(pan, {
         toValue: newYValue,
@@ -97,49 +70,33 @@ export default function SleepQualitySlider() {
         duration: 500,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      setSelectedIndex(index);
+    });
   };
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        setIsDragging(true);
-        pan.setOffset(pan._value);
-      },
       onPanResponderMove: (_, gestureState) => {
-        let newY = gestureState.dy;
-        let total = pan._offset + newY;
+        let totalY = gestureState.moveY - gestureState.y0 + selectedIndex * SEGMENT_HEIGHT;
+        totalY = Math.max(0, Math.min(totalY, TRACK_HEIGHT));
+        pan.setValue(totalY);
 
-        // Clamp the value between 0 and TRACK_HEIGHT
-        total = Math.max(0, Math.min(total, TRACK_HEIGHT));
-        
-        pan.setValue(newY);
-        
-        // Calculate the index based on position
-        const index = Math.round(total / SEGMENT_HEIGHT);
+        const index = Math.round(totalY / SEGMENT_HEIGHT);
         const clampedIndex = Math.max(0, Math.min(index, sleepLevels.length - 1));
-        
-        // Update fill and selected index
         fillScaleY.setValue(clampedIndex / (sleepLevels.length - 1));
         setSelectedIndex(clampedIndex);
       },
       onPanResponderRelease: () => {
-        pan.flattenOffset();
-        setIsDragging(false);
-        animateSelection(selectedIndex);
+        const index = Math.round(pan.__getValue() / SEGMENT_HEIGHT);
+        const clampedIndex = Math.max(0, Math.min(index, sleepLevels.length - 1));
+        animateSelection(clampedIndex);
       },
-    }),
+    })
   ).current;
 
-  const thumbY = pan.interpolate({
-    inputRange: [0, TRACK_HEIGHT],
-    outputRange: [0, TRACK_HEIGHT],
-    extrapolate: 'clamp',
-  });
-
   const handleSegmentPress = (index) => {
-    setSelectedIndex(index);
     animateSelection(index);
   };
 
@@ -147,31 +104,22 @@ export default function SleepQualitySlider() {
     const locationY = event.nativeEvent.locationY;
     const index = Math.round(locationY / SEGMENT_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(index, sleepLevels.length - 1));
-    handleSegmentPress(clampedIndex);
+    animateSelection(clampedIndex);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Ionicons name="chevron-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Sleep Quality</Text>
-        <View style={styles.stepBox}>
-          <Text style={styles.stepText}>8 of 14</Text>
-        </View>
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.neutrals.background }]}>
+      <Headers onBack={() => navigation.goBack()} currentStep="4" />      
+      <Title>How would you rate your sleep quality?</Title>
 
-      <Text style={styles.question}>How would you rate your sleep quality?</Text>
-      
       <Animated.View style={[styles.selectedCard, {
-        backgroundColor: sleepLevels[selectedIndex].color + '40',
+        backgroundColor: sleepLevels[selectedIndex].color + '20',
         borderColor: sleepLevels[selectedIndex].color,
         opacity: descriptionOpacity
       }]}>
         <Text style={styles.selectedEmoji}>{sleepLevels[selectedIndex].emoji}</Text>
-        <Text style={styles.selectedLabel}>{sleepLevels[selectedIndex].label}</Text>
-        <Text style={styles.selectedDescription}>{sleepLevels[selectedIndex].description}</Text>
+        <Text style={[styles.selectedLabel, { color: Colors.text.primary }]}>{sleepLevels[selectedIndex].label}</Text>
+        <Text style={[styles.selectedDescription, { color: Colors.text.secondary }]}>{sleepLevels[selectedIndex].description}</Text>
       </Animated.View>
 
       <View style={styles.sliderContainer}>
@@ -185,18 +133,20 @@ export default function SleepQualitySlider() {
             >
               <View>
                 <Text style={[
-                  styles.labelText,
+                  styles.labelText, 
+                  { color: Colors.text.secondary },
                   index === selectedIndex && { 
                     fontWeight: 'bold', 
-                    color: '#fff',
-                    fontSize: 18
+                    color: level.color, 
+                    fontSize: 18 
                   }
                 ]}>
                   {level.label}
                 </Text>
                 <Text style={[
-                  styles.hoursText,
-                  index === selectedIndex && { color: '#fff' }
+                  styles.hoursText, 
+                  { color: Colors.text.tertiary },
+                  index === selectedIndex && { color: level.color }
                 ]}>
                   {level.hours}
                 </Text>
@@ -205,87 +155,47 @@ export default function SleepQualitySlider() {
           ))}
         </View>
 
-        <TouchableOpacity 
-          style={styles.trackContainer}
-          activeOpacity={1}
-          onPress={handleTrackPress}
-        >
-          <View style={styles.trackShadow}>
-            <View style={styles.track}>
-              <Animated.View
-                style={[
-                  styles.trackFill,
-                  {
-                    backgroundColor: sleepLevels[selectedIndex].color,
-                    transform: [{
-                      scaleY: fillScaleY.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.1, 1],
-                        extrapolate: 'clamp',
-                      })
-                    }],
-                  },
-                ]}
-              />
-              {sleepLevels.map((_, index) => (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.trackNotch,
-                    { bottom: (index * SEGMENT_HEIGHT) - 2 }
-                  ]} 
-                />
-              ))}
+        <View style={styles.trackWrapper}>
+          <TouchableOpacity style={styles.trackContainer} activeOpacity={1} onPress={handleTrackPress}>
+            <View style={[styles.trackShadow, { backgroundColor: Colors.ui.shadow }]}>
+              <View style={[styles.track, { backgroundColor: Colors.neutrals.surfaceLow }]}>
+                <Animated.View style={[styles.trackFill, {
+                  backgroundColor: sleepLevels[selectedIndex].color,
+                  transform: [{ scaleY: fillScaleY.interpolate({ inputRange: [0, 1], outputRange: [0.1, 1], extrapolate: 'clamp' }) }],
+                }]} />
+                {sleepLevels.map((_, index) => (
+                  <View key={index} style={[styles.trackNotch, { 
+                    bottom: (index * SEGMENT_HEIGHT) - 2,
+                    backgroundColor: Colors.ui.border 
+                  }]} />
+                ))}
+              </View>
             </View>
-          </View>
-          
-          <Animated.View
-  {...panResponder.panHandlers}
-  style={[
-    styles.thumb,
-    {
-      transform: [
-        { translateY: thumbY },
-        { scale: scaleAnim }
-      ],
-      backgroundColor: sleepLevels[selectedIndex].color + '30',
-      borderWidth: 2,
-      borderColor: sleepLevels[selectedIndex].color,
-      shadowColor: sleepLevels[selectedIndex].color,
-    },
-  ]}
->
-  <Text style={[
-    styles.thumbEmoji,
-    { color: sleepLevels[selectedIndex].color }
-  ]}>
-    {sleepLevels[selectedIndex].emoji}
-  </Text>
-</Animated.View>
+          </TouchableOpacity>
+        </View>
 
-        </TouchableOpacity>
-
-
-        {/* Right side emojis Views */}
         <View style={styles.emojis}>
           {sleepLevels.map((level, index) => (
             <TouchableOpacity 
               key={index} 
-              style={[styles.emojiRow, { height: SEGMENT_HEIGHT }]}
+              style={[styles.emojiRow, { height: SEGMENT_HEIGHT }]} 
               onPress={() => handleSegmentPress(index)}
               activeOpacity={0.7}
             >
               <Animated.View style={[
-                styles.emojiContainer,
-                index === selectedIndex && {
-                  transform: [{ scale: scaleAnim }],
-                  backgroundColor: level.color + '30',
-                  borderColor: level.color,
+                styles.emojiContainer, 
+                { 
+                  borderColor: Colors.ui.border,
+                  backgroundColor: index === selectedIndex ? level.color + '20' : Colors.neutrals.surface
+                },
+                index === selectedIndex && { 
+                  transform: [{ scale: scaleAnim }], 
+                  borderColor: level.color 
                 }
               ]}>
                 <Text style={[
-                  styles.emoji,
-                  index === selectedIndex && { fontSize: 24 },
+                  styles.emoji, 
+                  index === selectedIndex && { fontSize: 24 }
                 ]}>
                   {level.emoji}
                 </Text>
@@ -293,12 +203,9 @@ export default function SleepQualitySlider() {
             </TouchableOpacity>
           ))}
         </View>
-
       </View>
-      
-      <TouchableOpacity style={styles.continueButton}>
-        <Text style={styles.continueButtonText}>Continue</Text>
-      </TouchableOpacity>
+
+      <AppButton onPress={() => navigation.navigate('NextScreen')} />
     </SafeAreaView>
   );
 }
@@ -306,41 +213,10 @@ export default function SleepQualitySlider() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A0A04',
     padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  headerText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-    marginLeft: 15,
-    flex: 1,
-  },
-  stepBox: {
-    backgroundColor: '#5E3C1F',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  stepText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  question: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    lineHeight: 32,
+    marginTop: -35
   },
   selectedCard: {
-    backgroundColor: '#ffffff20',
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
@@ -352,13 +228,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectedLabel: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 5,
   },
   selectedDescription: {
-    color: '#ffffffcc',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -367,6 +241,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    marginBottom: 20,
+  },
+  trackWrapper: {
+    height: TRACK_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    marginHorizontal: 10,
   },
   labels: {
     flex: 1,
@@ -387,12 +269,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   labelText: {
-    color: '#aaa',
     fontSize: 16,
     fontWeight: '500',
   },
   hoursText: {
-    color: '#777',
     fontSize: 12,
     marginTop: 2,
   },
@@ -403,7 +283,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'transparent',
   },
   emoji: {
     fontSize: 20,
@@ -413,14 +292,11 @@ const styles = StyleSheet.create({
     width: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    marginHorizontal: 50,
   },
   trackShadow: {
     width: 16,
     height: TRACK_HEIGHT,
     borderRadius: 6,
-    backgroundColor: '#00000060',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -430,7 +306,6 @@ const styles = StyleSheet.create({
   track: {
     width: 12,
     height: TRACK_HEIGHT,
-    backgroundColor: '#3A2018',
     borderRadius: 6,
     overflow: 'hidden',
     position: 'relative',
@@ -446,36 +321,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 16,
     height: 2,
-    backgroundColor: '#ffffff60',
     left: -2,
-  },
-  thumb: {
-    position: 'absolute',
-    left: 7,
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 8,
-  },
-  thumbEmoji: {
-    fontSize: 16,
-  },
-  continueButton: {
-    backgroundColor: '#F2C94C',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  continueButtonText: {
-    color: '#1A0A04',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

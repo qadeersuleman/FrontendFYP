@@ -23,6 +23,7 @@ import WeightSelection from './app/Screen/Assesment/WeightSelection';
 import New from './New';
 import MoodAssessment from './app/Screen/Assesment/Mood';
 import SleepQuality from './app/Screen/Assesment/SleepQuality';
+import SoundAnalysis from './app/components/Assesment/SoundAnalysis';
 
 const Stack = createNativeStackNavigator();
 
@@ -61,9 +62,10 @@ export default function App() {
     {/* <LottieCentered /> */}
     {/* <WeightSelection /> */}
     {/* <MoodAssessment /> */}
-    <SleepQuality />
+    {/* <SleepQuality /> */}
     {/* <New /> */}
     {/* <SplashScreen /> */}
+    <SoundAnalysis />
   </GestureHandlerRootView>
  
    
