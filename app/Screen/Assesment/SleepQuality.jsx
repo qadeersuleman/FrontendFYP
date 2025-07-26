@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,14 +17,14 @@ import Title from '../../components/Assesment/Title';
 import AppButton from '../../components/AppButton';
 
 const sleepLevels = [
-  { label: 'Excellent', hours: '7-9 hours', emoji: '😊', color: Colors.status.success, description: 'Restful and refreshing sleep' },
-  { label: 'Good', hours: '6-7 hours', emoji: '🙂', color: Colors.features.journal, description: 'Mostly restful sleep' },
-  { label: 'Fair', hours: '5 hours', emoji: '😐', color: Colors.accent.teal, description: 'Somewhat restful sleep' },
   { label: 'Worst', hours: '3-4 hours', emoji: '😟', color: Colors.features.mood, description: 'Fragmented and light sleep' },
+  { label: 'Fair', hours: '5 hours', emoji: '😐', color: Colors.accent.teal, description: 'Somewhat restful sleep' },
+  { label: 'Good', hours: '6-7 hours', emoji: '🙂', color: Colors.features.journal, description: 'Mostly restful sleep' },
+  { label: 'Excellent', hours: '7-9 hours', emoji: '😊', color: Colors.status.success, description: 'Restful and refreshing sleep' },
 ];
 
 const TRACK_HEIGHT = 300;
-const SEGMENT_HEIGHT = TRACK_HEIGHT / (sleepLevels.length);
+const SEGMENT_HEIGHT = TRACK_HEIGHT / sleepLevels.length;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function SleepQualitySlider({ navigation }) {
@@ -32,11 +32,24 @@ export default function SleepQualitySlider({ navigation }) {
   const [selectedIndex, setSelectedIndex] = useState(middleIndex);
   const pan = useRef(new Animated.Value(selectedIndex * SEGMENT_HEIGHT)).current;
   
-  const descriptionOpacity = useRef(new Animated.Value(0)).current;
+  const descriptionOpacity = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fillScaleY = useRef(new Animated.Value(selectedIndex / (sleepLevels.length - 1))).current;
+  const isAnimating = useRef(false);
 
-  const animateSelection = (index) => {
+  useEffect(() => {
+    // Initialize the selected card animation
+    Animated.timing(descriptionOpacity, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const animateSelection = useCallback((index) => {
+    if (isAnimating.current || index === selectedIndex) return;
+    
+    isAnimating.current = true;
     const newYValue = index * SEGMENT_HEIGHT;
     const scaleYValue = index / (sleepLevels.length - 1);
 
@@ -65,20 +78,18 @@ export default function SleepQualitySlider({ navigation }) {
           useNativeDriver: true,
         }),
       ]),
-      Animated.timing(descriptionOpacity, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
     ]).start(() => {
       setSelectedIndex(index);
+      isAnimating.current = false;
     });
-  };
+  }, [selectedIndex]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
+        if (isAnimating.current) return;
+        
         let totalY = gestureState.moveY - gestureState.y0 + selectedIndex * SEGMENT_HEIGHT;
         totalY = Math.max(0, Math.min(totalY, TRACK_HEIGHT));
         pan.setValue(totalY);
@@ -89,6 +100,8 @@ export default function SleepQualitySlider({ navigation }) {
         setSelectedIndex(clampedIndex);
       },
       onPanResponderRelease: () => {
+        if (isAnimating.current) return;
+        
         const index = Math.round(pan.__getValue() / SEGMENT_HEIGHT);
         const clampedIndex = Math.max(0, Math.min(index, sleepLevels.length - 1));
         animateSelection(clampedIndex);
@@ -96,20 +109,24 @@ export default function SleepQualitySlider({ navigation }) {
     })
   ).current;
 
-  const handleSegmentPress = (index) => {
-    animateSelection(index);
-  };
+  const handleSegmentPress = useCallback((index) => {
+    if (!isAnimating.current) {
+      animateSelection(index);
+    }
+  }, [animateSelection]);
 
-  const handleTrackPress = (event) => {
-    const locationY = event.nativeEvent.locationY;
-    const index = Math.round(locationY / SEGMENT_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, sleepLevels.length - 1));
-    animateSelection(clampedIndex);
-  };
+  const handleTrackPress = useCallback((event) => {
+    if (!isAnimating.current) {
+      const locationY = event.nativeEvent.locationY;
+      const index = Math.round(locationY / SEGMENT_HEIGHT);
+      const clampedIndex = Math.max(0, Math.min(index, sleepLevels.length - 1));
+      animateSelection(clampedIndex);
+    }
+  }, [animateSelection]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.neutrals.background }]}>
-      <Headers onBack={() => navigation.goBack()} currentStep="4" />      
+      <Headers onBack={() => navigation.goBack()} currentStep="5" />      
       <Title>How would you rate your sleep quality?</Title>
 
       <Animated.View style={[styles.selectedCard, {
@@ -130,6 +147,7 @@ export default function SleepQualitySlider({ navigation }) {
               style={[styles.labelRow, { height: SEGMENT_HEIGHT }]}
               onPress={() => handleSegmentPress(index)}
               activeOpacity={0.7}
+              delayPressIn={50}
             >
               <View>
                 <Text style={[
@@ -156,18 +174,29 @@ export default function SleepQualitySlider({ navigation }) {
         </View>
 
         <View style={styles.trackWrapper}>
-          <TouchableOpacity style={styles.trackContainer} activeOpacity={1} onPress={handleTrackPress}>
+          <TouchableOpacity 
+            style={styles.trackContainer} 
+            activeOpacity={1} 
+            onPress={handleTrackPress}
+          >
             <View style={[styles.trackShadow, { backgroundColor: Colors.ui.shadow }]}>
               <View style={[styles.track, { backgroundColor: Colors.neutrals.surfaceLow }]}>
                 <Animated.View style={[styles.trackFill, {
                   backgroundColor: sleepLevels[selectedIndex].color,
-                  transform: [{ scaleY: fillScaleY.interpolate({ inputRange: [0, 1], outputRange: [0.1, 1], extrapolate: 'clamp' }) }],
+                  transform: [{ scaleY: fillScaleY.interpolate({ 
+                    inputRange: [0, 1], 
+                    outputRange: [0.1, 1], 
+                    extrapolate: 'clamp' 
+                  }) }],
                 }]} />
                 {sleepLevels.map((_, index) => (
-                  <View key={index} style={[styles.trackNotch, { 
-                    bottom: (index * SEGMENT_HEIGHT) - 2,
-                    backgroundColor: Colors.ui.border 
-                  }]} />
+                  <View 
+                    key={index} 
+                    style={[styles.trackNotch, { 
+                      bottom: (index * SEGMENT_HEIGHT) - 2,
+                      backgroundColor: Colors.ui.border 
+                    }]} 
+                  />
                 ))}
               </View>
             </View>
@@ -181,16 +210,18 @@ export default function SleepQualitySlider({ navigation }) {
               style={[styles.emojiRow, { height: SEGMENT_HEIGHT }]} 
               onPress={() => handleSegmentPress(index)}
               activeOpacity={0.7}
+              delayPressIn={50}
             >
               <Animated.View style={[
                 styles.emojiContainer, 
                 { 
                   borderColor: Colors.ui.border,
-                  backgroundColor: index === selectedIndex ? level.color + '20' : Colors.neutrals.surface
+                  backgroundColor: level.color + '20'
                 },
                 index === selectedIndex && { 
                   transform: [{ scale: scaleAnim }], 
-                  borderColor: level.color 
+                  borderColor: level.color,
+                  backgroundColor: level.color + '40'
                 }
               ]}>
                 <Text style={[
@@ -205,7 +236,7 @@ export default function SleepQualitySlider({ navigation }) {
         </View>
       </View>
 
-      <AppButton onPress={() => navigation.navigate('NextScreen')} />
+      <AppButton onPress={() => navigation.navigate('ExpressionAnalysis')} />
     </SafeAreaView>
   );
 }
@@ -289,7 +320,7 @@ const styles = StyleSheet.create({
   },
   trackContainer: {
     height: TRACK_HEIGHT,
-    width: 50,
+    width: 150,
     justifyContent: 'center',
     alignItems: 'center',
   },

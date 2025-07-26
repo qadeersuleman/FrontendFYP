@@ -114,7 +114,7 @@ const AgeSelection = ({ navigation }) => {
 
       {/* Added spacing wrapper for the button */}
       <View style={styles.buttonContainer}>
-        <AppButton onPress={() => navigation.navigate('NextScreen')} />
+        <AppButton onPress={() => navigation.navigate('WeightSelection')} />
       </View>
     </View>
   );

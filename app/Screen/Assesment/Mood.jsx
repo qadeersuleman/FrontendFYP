@@ -176,7 +176,7 @@ const MoodSelector = ({ navigation }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-                <AppButton onPress={() => navigation.navigate('NextScreen')} text='Continue' />
+                <AppButton onPress={() => navigation.navigate('SleepQuality')} text='Continue' />
               </View>
       </Animated.View>
     </LinearGradient>

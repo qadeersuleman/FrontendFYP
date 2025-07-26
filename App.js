@@ -23,7 +23,8 @@ import WeightSelection from './app/Screen/Assesment/WeightSelection';
 import New from './New';
 import MoodAssessment from './app/Screen/Assesment/Mood';
 import SleepQuality from './app/Screen/Assesment/SleepQuality';
-import SoundAnalysis from './app/components/Assesment/SoundAnalysis';
+import SoundAnalysis from './app/Screen/Assesment/SoundAnalysis';
+import ExpressionAnalysis from './app/Screen/Assesment/ExpressionAnalysis';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,34 +40,43 @@ export default function App() {
 
 
 
-    // <NavigationContainer>
-    //   <Stack.Navigator>
-    //     <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown : false}} />
-    //     <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown : false }} />
+    <NavigationContainer>
+      <Stack.Navigator>
+        {/* <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown : false}} />
+        <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown : false }} />
         
-    //     <Stack.Screen name="Login" component={Login} options={{ headerShown : false }} />
-    //     <Stack.Screen name="Signup" component={Signup} options={{ headerShown : false }} />
-    //     <Stack.Screen name="ForgetPassword" component={ForgetPassword} options={{ headerShown : false }} />
-    //   </Stack.Navigator>
-    // </NavigationContainer>
+        <Stack.Screen name="Login" component={Login} options={{ headerShown : false }} />
+        <Stack.Screen name="Signup" component={Signup} options={{ headerShown : false }} />
+        <Stack.Screen name="ForgetPassword" component={ForgetPassword} options={{ headerShown : false }} /> */}
+        <Stack.Screen name="HealthGoal" component={HealthGoal} options={{ headerShown: false }} />
+        <Stack.Screen name="AgeSelection" component={AgeSelection} options={{ headerShown:false }} />
+        <Stack.Screen name="WeightSelection" component={WeightSelection} options={{ headerShown:false }} />
+        <Stack.Screen name="MoodAssessment" component={MoodAssessment} options={{ headerShown : false }} />
+        <Stack.Screen name="SleepQuality" component={SleepQuality} options={{ headerShown : false }} />
+        <Stack.Screen name="ExpressionAnalysis" component={ExpressionAnalysis} options={{ headerShown : false }} />
+        <Stack.Screen name="SoundAnalysis" component={SoundAnalysis} options={{ headerShown : false }} />
+        
+      </Stack.Navigator>
+    </NavigationContainer>
 
     // <Signup />
     // <Login />
     // <ForgetPassword />
     // <HealthGoal />
 
-    <GestureHandlerRootView style={{ flex: 1 }}>
-    {/* Your existing app components */}
-    {/* <HealthGoal /> */}
-      {/* <AgeSelection /> */}
-    {/* <LottieCentered /> */}
-    {/* <WeightSelection /> */}
-    {/* <MoodAssessment /> */}
-    {/* <SleepQuality /> */}
-    {/* <New /> */}
-    {/* <SplashScreen /> */}
-    <SoundAnalysis />
-  </GestureHandlerRootView>
+  //   <GestureHandlerRootView style={{ flex: 1 }}>
+  //   {/* Your existing app components */}
+  //   {/* <HealthGoal /> */}
+  //     {/* <AgeSelection /> */}
+  //   {/* <LottieCentered /> */}
+  //   {/* <WeightSelection /> */}
+  //   {/* <MoodAssessment /> */}
+  //   {/* <SleepQuality /> */}
+  //   {/* <New /> */}
+  //   {/* <SplashScreen /> */}
+  //   {/* <SoundAnalysis /> */}
+  //   {/* <ExpressionAnalysis /> */}
+  // </GestureHandlerRootView>
  
    
     

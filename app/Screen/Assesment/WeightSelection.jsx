@@ -90,7 +90,7 @@ const WeightSelection = ({ navigation }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <AppButton onPress={() => navigation.navigate('NextScreen')} text='Continue' />
+        <AppButton onPress={() => navigation.navigate('MoodAssessment')} text='Continue' />
       </View>
     </View>
   );

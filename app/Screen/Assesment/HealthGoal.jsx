@@ -71,7 +71,7 @@ const HealthGoal = ({ navigation }) => {
       </View>
 
       {selectedGoal ? (
-        <AppButton onPress={() => navigation.navigate('NextScreen')} />
+        <AppButton onPress={() => navigation.navigate('AgeSelection')} />
       ) : (
         <View style={styles.disabledButtonContainer}>
           <AppButton
