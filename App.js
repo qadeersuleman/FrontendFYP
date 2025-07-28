@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Settings, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -9,7 +9,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // Screen Apps
 import MentalHealth from './app/Screen/MentalHealth'
 import WelcomeScreen from './app/Screen/WelcomeScreens/WelcomeScreen';
-import SplashScreen from './app/Screen/SplashScreen';
+// import SplashScreen from './app/Screen/SplashScreen';
+
+
 import Login from './app/Screen/Authentication/Login';
 import Signup from './app/Screen/Authentication/Signup';
 import ForgetPassword from './app/Screen/Authentication/ForgetPassword';
@@ -25,6 +27,10 @@ import MoodAssessment from './app/Screen/Assesment/Mood';
 import SleepQuality from './app/Screen/Assesment/SleepQuality';
 import SoundAnalysis from './app/Screen/Assesment/SoundAnalysis';
 import ExpressionAnalysis from './app/Screen/Assesment/ExpressionAnalysis';
+import Home from './app/Screen/Faizan/Home';
+import SettingsScreen from './app/Screen/Faizan/SettingsScreen';
+import SplashScreen from './app/Screen/Faizan/SplashScreen';
+import { Header } from 'react-native/Libraries/NewAppScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,24 +46,24 @@ export default function App() {
 
 
 
-    <NavigationContainer>
-      <Stack.Navigator>
-        {/* <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown : false}} />
-        <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown : false }} />
+    // <NavigationContainer>
+    //   <Stack.Navigator>
+    //     {/* <Stack.Screen name="SplashScreen" component={SplashScreen} options={{ headerShown : false}} />
+    //     <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown : false }} />
         
-        <Stack.Screen name="Login" component={Login} options={{ headerShown : false }} />
-        <Stack.Screen name="Signup" component={Signup} options={{ headerShown : false }} />
-        <Stack.Screen name="ForgetPassword" component={ForgetPassword} options={{ headerShown : false }} /> */}
-        <Stack.Screen name="HealthGoal" component={HealthGoal} options={{ headerShown: false }} />
-        <Stack.Screen name="AgeSelection" component={AgeSelection} options={{ headerShown:false }} />
-        <Stack.Screen name="WeightSelection" component={WeightSelection} options={{ headerShown:false }} />
-        <Stack.Screen name="MoodAssessment" component={MoodAssessment} options={{ headerShown : false }} />
-        <Stack.Screen name="SleepQuality" component={SleepQuality} options={{ headerShown : false }} />
-        <Stack.Screen name="ExpressionAnalysis" component={ExpressionAnalysis} options={{ headerShown : false }} />
-        <Stack.Screen name="SoundAnalysis" component={SoundAnalysis} options={{ headerShown : false }} />
+    //     <Stack.Screen name="Login" component={Login} options={{ headerShown : false }} />
+    //     <Stack.Screen name="Signup" component={Signup} options={{ headerShown : false }} />
+    //     <Stack.Screen name="ForgetPassword" component={ForgetPassword} options={{ headerShown : false }} /> */}
+    //     {/* <Stack.Screen name="HealthGoal" component={HealthGoal} options={{ headerShown: false }} />
+    //     <Stack.Screen name="AgeSelection" component={AgeSelection} options={{ headerShown:false }} />
+    //     <Stack.Screen name="WeightSelection" component={WeightSelection} options={{ headerShown:false }} />
+    //     <Stack.Screen name="MoodAssessment" component={MoodAssessment} options={{ headerShown : false }} />
+    //     <Stack.Screen name="SleepQuality" component={SleepQuality} options={{ headerShown : false }} />
+    //     <Stack.Screen name="ExpressionAnalysis" component={ExpressionAnalysis} options={{ headerShown : false }} />
+    //     <Stack.Screen name="SoundAnalysis" component={SoundAnalysis} options={{ headerShown : false }} /> */}
         
-      </Stack.Navigator>
-    </NavigationContainer>
+    //   </Stack.Navigator>
+    // </NavigationContainer>
 
     // <Signup />
     // <Login />
@@ -76,9 +82,20 @@ export default function App() {
   //   {/* <SplashScreen /> */}
   //   {/* <SoundAnalysis /> */}
   //   {/* <ExpressionAnalysis /> */}
+  //   {/* <Home /> */}
+  //   {/* <SettingsScreen /> */}
   // </GestureHandlerRootView>
  
    
+
+  // For Faizan's Home and Settings Screen
+   <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Splash" component={SplashScreen} options={{headerShown : false}} />
+        <Stack.Screen name="Home" component={Home} options={{headerShown : false}} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{headerShown : false}} />
+      </Stack.Navigator>
+    </NavigationContainer>
     
   );
 }
