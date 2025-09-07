@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,80 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Headers from '../../components/Assesment/Header';
 import Title from '../../components/Assesment/Title';
 import AppButton from '../../components/AppButton';
 import Colors from '../../assets/colors';
+import { submitAssessment } from '../../Services/api';
+import { getSession } from '../../utils/session';
 
-const ExpressionAnalysis = ({ navigation }) => {
+const ExpressionAnalysis = ({route, navigation }) => {
   const [text, setText] = useState('');
   const [charCount, setCharCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
   const maxCharLimit = 250;
+
+  // Get assessment data from previous screens
+  const {health_goal, age, weight, mood, sleep_quality} = route.params;
+
+  useEffect(() => {
+    // Get user data from session
+    const fetchUserData = async () => {
+      const userData = await getSession();
+      if (userData && userData.id) {
+        setUserId(userData.id);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
 
   const handleTextChange = (input) => {
     setText(input);
     setCharCount(input.length);
+  };
+
+  const handleSubmit = async () => {
+    if (!userId) {
+      Alert.alert('Error', 'User not found. Please log in again.');
+      return;
+    }
+
+    // Prepare the data to send
+    const assessmentData = {
+      user: userId,
+      health_goal,
+      age: parseInt(age),
+      weight: parseFloat(weight),
+      mood,
+      sleep_quality,
+      expression_analysis: text,
+    };
+
+    setIsLoading(true);
+    
+    try {
+      // Submit the assessment data
+      await submitAssessment(assessmentData);
+      
+      // Navigate to the next screen
+      navigation.navigate('SoundAnalysis', {
+        health_goal,
+        weight,
+        age,
+        mood,
+        sleep_quality,
+        expression_text: text
+      });
+    } catch (error) {
+      Alert.alert('Submission Error', error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,11 +123,16 @@ const ExpressionAnalysis = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <AppButton
-        title="Continue"
-        style={styles.appButton}
-        onPress={() => navigation.navigate('SoundAnalysis')}
-      />
+      {isLoading ? (
+        <ActivityIndicator size="large" color={Colors.brand.primary} />
+      ) : (
+        <AppButton
+          title="Continue"
+          style={styles.appButton}
+          onPress={handleSubmit}
+          disabled={isLoading}
+        />
+      )}
     </View>
   );
 };

@@ -30,7 +30,7 @@ const { width, height } = Dimensions.get('window');
 const EMOJI_SIZE = width * 0.25;
 const OPTION_SIZE = width * 0.18;
 
-const MoodSelector = ({ navigation }) => {
+const MoodSelector = ({route, navigation }) => {
   const [selectedMood, setSelectedMood] = useState(moods[1]);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -39,6 +39,10 @@ const MoodSelector = ({ navigation }) => {
     acc[mood.id] = useRef(new Animated.Value(1)).current;
     return acc;
   }, {});
+
+
+  // Get all data of previous Assesment Screens
+  const {health_goal ,age, weight } = route.params;
 
   useEffect(() => {
     // Entry animations
@@ -176,7 +180,7 @@ const MoodSelector = ({ navigation }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-                <AppButton onPress={() => navigation.navigate('SleepQuality')} text='Continue' />
+                <AppButton onPress={() => navigation.navigate('SleepQuality', {health_goal : health_goal, age : age, weight : weight, mood : selectedMood.label})} text='Continue' />
               </View>
       </Animated.View>
     </LinearGradient>

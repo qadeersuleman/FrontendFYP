@@ -14,10 +14,14 @@ const { width } = Dimensions.get('window');
 const WEIGHTS = Array.from({ length: 121 }, (_, i) => (40 + i).toString()); // 40 to 160 kg
 const ITEM_WIDTH = 60;
 
-const WeightSelection = ({ navigation }) => {
+const WeightSelection = ({route, navigation }) => {
   const [unit, setUnit] = useState('kg');
   const [selectedWeight, setSelectedWeight] = useState('128');
   const flatListRef = useRef(null);
+
+  // Get data of health goal and age
+  const { health_goal, age } = route.params;
+
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -55,6 +59,8 @@ const WeightSelection = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: Colors.neutrals.background }]}>
       <Headers onBack={() => navigation.goBack()} currentStep="3" />
 
+        
+
       <Title>What's your weight?</Title>
 
       {/* Unit Switcher */}
@@ -90,7 +96,7 @@ const WeightSelection = ({ navigation }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <AppButton onPress={() => navigation.navigate('MoodAssessment')} text='Continue' />
+        <AppButton onPress={() => navigation.navigate('MoodAssessment', {health_goal : health_goal, age : age, weight : selectedWeight})} text='Continue' />
       </View>
     </View>
   );

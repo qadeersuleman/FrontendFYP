@@ -28,13 +28,13 @@ const GOALS = [
     color: Colors.features.ai,
   },
   {
-    text: 'I want to cope with trauma',
+    text: 'I want to be healthy',
     icon: 'shield',
     iconFamily: 'Feather',
     color: Colors.features.meditation,
   },
   {
-    text: 'I want to be a better person',
+    text: 'I want to be better person',
     icon: 'smile', // Changed from 'smile-o' to 'smile'
     iconFamily: 'Feather', // Explicitly specify Feather
     color: Colors.features.journal,
@@ -54,7 +54,7 @@ const HealthGoal = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: Colors.neutrals.background }]}>
       <Headers onBack={() => navigation.goBack()} currentStep="1" />
 
-      
+
 
       <Title style={styles.title}>What's your Health goal for today?</Title>
 
@@ -71,7 +71,7 @@ const HealthGoal = ({ navigation }) => {
       </View>
 
       {selectedGoal ? (
-        <AppButton onPress={() => navigation.navigate('AgeSelection')} />
+        <AppButton onPress={() => navigation.navigate('AgeSelection', { health_goal: selectedGoal })} />
       ) : (
         <View style={styles.disabledButtonContainer}>
           <AppButton
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     paddingInline: 20,
   },
   optionsContainer: {
-    marginBottom: 30,
+    marginBottom: 10,
   },
   continueButtonInactive: {
     backgroundColor: Colors.text.disabled,

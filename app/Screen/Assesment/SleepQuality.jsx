@@ -27,7 +27,7 @@ const TRACK_HEIGHT = 300;
 const SEGMENT_HEIGHT = TRACK_HEIGHT / sleepLevels.length;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export default function SleepQualitySlider({ navigation }) {
+export default function SleepQualitySlider({route, navigation }) {
   const middleIndex = Math.floor(sleepLevels.length / 2);
   const [selectedIndex, setSelectedIndex] = useState(middleIndex);
   const pan = useRef(new Animated.Value(selectedIndex * SEGMENT_HEIGHT)).current;
@@ -36,6 +36,9 @@ export default function SleepQualitySlider({ navigation }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fillScaleY = useRef(new Animated.Value(selectedIndex / (sleepLevels.length - 1))).current;
   const isAnimating = useRef(false);
+
+  // All Assesment Screens have same header and title
+  const {health_goal ,age, weight, mood } = route.params;
 
   useEffect(() => {
     // Initialize the selected card animation
@@ -126,7 +129,9 @@ export default function SleepQualitySlider({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.neutrals.background }]}>
-      <Headers onBack={() => navigation.goBack()} currentStep="5" />      
+      <Headers onBack={() => navigation.goBack()} currentStep="5" />   
+        {/* In last just find sleep quality as worst fair good or excellent */}
+          
       <Title>How would you rate your sleep quality?</Title>
 
       <Animated.View style={[styles.selectedCard, {
@@ -236,7 +241,15 @@ export default function SleepQualitySlider({ navigation }) {
         </View>
       </View>
 
-      <AppButton onPress={() => navigation.navigate('ExpressionAnalysis')} />
+      <AppButton onPress={() => navigation.navigate('ExpressionAnalysis', 
+        {
+          health_goal : health_goal,
+          weight : weight,
+          age : age,
+          mood : mood,
+          sleep_quality: sleepLevels[selectedIndex].label
+        }
+      )} />
     </SafeAreaView>
   );
 }
