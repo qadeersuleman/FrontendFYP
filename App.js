@@ -28,6 +28,15 @@ import ExpressionAnalysis from './app/Screen/Assesment/ExpressionAnalysis';
 // Main App Screens
 import Home from './app/Screen/Home/Home';
 import SettingsScreen from './app/Screen/Faizan/SettingsScreen';
+import HomeCards from './app/Screen/Home/HomeCards';
+import ArticlesSection from './app/Screen/Home/ArticlesSection';
+import MentalHealthChat from './app/Screen/Chat/MentalHealthChat';
+import DataSender from './app/Screen/Extra/DataSender';
+import ArticleDetail from './app/Screen/Media/ArticleDetail';
+import Youtube from './app/Screen/Home/Youtube';
+import MoodTracker from './app/Screen/PushNotification/MoodTracker';
+import stressLevel from './app/Screen/PushNotification/stressLevel';
+import MindfulJournal from './app/Screen/PushNotification/MindfulJournal';
 
 const Stack = createNativeStackNavigator();
 
@@ -132,8 +141,52 @@ export default function App() {
           component={SettingsScreen} 
           options={{ headerShown: false }} 
         />
+
+        {/* Chat Screens */}
+        <Stack.Screen 
+          name="Chat" 
+          component={MentalHealthChat} 
+          options={{ headerShown: false }} 
+        />
+
+
+         {/* Chat Screens */}
+        <Stack.Screen 
+          name="DataSend" 
+          component={DataSender} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="ArticleDetail" 
+          component={ArticleDetail} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Youtube" 
+          component={Youtube} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="MoodTracker" 
+          component={MoodTracker} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="stressLevel" 
+          component={stressLevel} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="MindfulJournal" 
+          component={MindfulJournal} 
+          options={{ headerShown: false }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
+    // <Home />
+    // <WelcomeScreen />
+    // <HealthGoal />
+    // <WeightSelection />
   );
 }
 

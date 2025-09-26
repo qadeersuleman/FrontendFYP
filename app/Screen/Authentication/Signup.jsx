@@ -20,17 +20,20 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import LottieView from 'lottie-react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+
+import { saveSession } from '../../utils/session';
+import { SignupUser } from '../../Services/api';
 
 const { width, height } = Dimensions.get('window');
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
 
-const SignupScreen = () => {
+const Signup = () => {
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [focusedInput, setFocusedInput] = useState(null);
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -38,6 +41,11 @@ const SignupScreen = () => {
   const logoScale = useRef(new Animated.Value(0.9)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
   const socialAnim = useRef(new Animated.Value(0)).current;
+
+  // Input focus animations
+  const emailBorderAnim = useRef(new Animated.Value(0)).current;
+  const passwordBorderAnim = useRef(new Animated.Value(0)).current;
+  const confirmPasswordBorderAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Entry animations
@@ -66,6 +74,70 @@ const SignupScreen = () => {
       }),
     ]).start();
   }, []);
+
+  // Handle input focus
+  const handleFocus = (inputName) => {
+    setFocusedInput(inputName);
+    if (inputName === 'email') {
+      Animated.timing(emailBorderAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    } else if (inputName === 'password') {
+      Animated.timing(passwordBorderAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    } else if (inputName === 'confirmPassword') {
+      Animated.timing(confirmPasswordBorderAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
+
+  // Handle input blur
+  const handleBlur = (inputName) => {
+    setFocusedInput(null);
+    if (inputName === 'email') {
+      Animated.timing(emailBorderAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    } else if (inputName === 'password') {
+      Animated.timing(passwordBorderAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    } else if (inputName === 'confirmPassword') {
+      Animated.timing(confirmPasswordBorderAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
+
+  // Interpolate border colors
+  const emailBorderColor = emailBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#ddd', '#4E7AC7']
+  });
+
+  const passwordBorderColor = passwordBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#ddd', '#4E7AC7']
+  });
+
+  const confirmPasswordBorderColor = confirmPasswordBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#ddd', '#4E7AC7']
+  });
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -106,48 +178,56 @@ const SignupScreen = () => {
       .required('Confirm password is required'),
   });
 
- // Handle Signup form submission
-const handleSubmit = async (values) => {
-  setIsSubmitting(true);
-  try {
-    // Button animation
-    Animated.sequence([
-      Animated.timing(buttonScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
-      Animated.timing(buttonScale, { toValue: 1, duration: 100, useNativeDriver: true }),
-    ]).start();
+  // Handle Signup form submission
+  const handleSubmit = async (values) => {
+    console.log('Form values:', values);
+    setIsSubmitting(true);
+    
+    try {
+      // Button animation
+      Animated.sequence([
+        Animated.timing(buttonScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+        Animated.timing(buttonScale, { toValue: 1, duration: 100, useNativeDriver: true }),
+      ]).start();
 
-    // API call
-    const response = await axios.post(
-      'http://192.168.100.11:8000/api/signup/',
-      {
+      // API call
+      const response = await SignupUser({
         email: values.email,
         password: values.password,
-        full_name: values.full_name || '',
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-    
-    console.log('Signup successful:', response.data);
-    
-    // Save user session
-    await saveSession(response.data.user);
-    
-    // Redirect to edit profile screen after signup
-    navigation.navigate('EditProfile');
-    
-  } catch (error) {
-    console.error('Signup error:', error.response?.data || error.message);
-    Alert.alert(
-      'Signup Failed',
-      error.response?.data?.error || 
-      error.response?.data?.message || 
-      'An error occurred during signup'
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+      });
+      
+      console.log('Signup successful:', response);
+      
+      // Save complete user data in session
+      if (response.user) {
+        await saveSession({
+          id: response.user.id,
+          email: response.user.email,
+          full_name: response.user.full_name || '',
+          hasCompletedProfile: response.user.hasCompletedProfile || false,
+          hasCompletedAssessment: response.user.hasCompletedAssessment || false,
+          profile_image: response.user.profile_image || null,
+          phone_number: response.user.phone_number || null
+        });
+      }
+      
+      // Redirect to appropriate screen based on profile completion
+      if (response.user && response.user.hasCompletedProfile) {
+        navigation.navigate('Dashboard');
+      } else {
+        navigation.navigate('EditProfile');
+      }
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      Alert.alert(
+        'Signup Failed',
+        error.response?.data?.message || error.message || 'An error occurred during signup'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const socialTranslateY = socialAnim.interpolate({
     inputRange: [0, 1],
@@ -191,7 +271,7 @@ const handleSubmit = async (values) => {
               />
               <Animated.View style={{ transform: [{ scale: logoScale }] }}>
                 <Image
-                  source={require('../../assets/images/logo.png')}
+                  source={require('../../assets/images/3.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
@@ -229,11 +309,23 @@ const handleSubmit = async (values) => {
                 <>
                   {/* Email */}
                   <Text style={styles.label}>Email Address</Text>
-                  <View style={styles.inputContainer}>
+                  <Animated.View 
+                    style={[
+                      styles.inputContainer,
+                      {
+                        borderColor: emailBorderColor,
+                        shadowColor: focusedInput === 'email' ? '#4E7AC7' : 'transparent',
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: focusedInput === 'email' ? 0.3 : 0,
+                        shadowRadius: 5,
+                        elevation: focusedInput === 'email' ? 3 : 0,
+                      }
+                    ]}
+                  >
                     <MaterialIcons
                       name="email"
                       size={20}
-                      color="#666"
+                      color={focusedInput === 'email' ? '#4E7AC7' : '#666'}
                       style={styles.icon}
                     />
                     <TextInput
@@ -244,20 +336,36 @@ const handleSubmit = async (values) => {
                       autoCapitalize="none"
                       value={values.email}
                       onChangeText={handleChange('email')}
-                      onBlur={handleBlur('email')}
+                      onBlur={() => {
+                        handleBlur('email');
+                        handleBlur('email');
+                      }}
+                      onFocus={() => handleFocus('email')}
                     />
-                  </View>
+                  </Animated.View>
                   {touched.email && errors.email && (
                     <Text style={styles.error}>{errors.email}</Text>
                   )}
 
                   {/* Password */}
                   <Text style={styles.label}>Password</Text>
-                  <View style={styles.inputContainer}>
+                  <Animated.View 
+                    style={[
+                      styles.inputContainer,
+                      {
+                        borderColor: passwordBorderColor,
+                        shadowColor: focusedInput === 'password' ? '#4E7AC7' : 'transparent',
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: focusedInput === 'password' ? 0.3 : 0,
+                        shadowRadius: 5,
+                        elevation: focusedInput === 'password' ? 3 : 0,
+                      }
+                    ]}
+                  >
                     <FontAwesome
                       name="lock"
                       size={20}
-                      color="#666"
+                      color={focusedInput === 'password' ? '#4E7AC7' : '#666'}
                       style={styles.icon}
                     />
                     <TextInput
@@ -267,28 +375,44 @@ const handleSubmit = async (values) => {
                       secureTextEntry={!showPassword}
                       value={values.password}
                       onChangeText={handleChange('password')}
-                      onBlur={handleBlur('password')}
+                      onBlur={() => {
+                        handleBlur('password');
+                        handleBlur('password');
+                      }}
+                      onFocus={() => handleFocus('password')}
                     />
                     <TouchableOpacity onPress={toggleShowPassword}>
                       <Ionicons
                         name={showPassword ? 'eye-off' : 'eye'}
                         size={20}
-                        color="#666"
+                        color={focusedInput === 'password' ? '#4E7AC7' : '#666'}
                         style={styles.icon}
                       />
                     </TouchableOpacity>
-                  </View>
+                  </Animated.View>
                   {touched.password && errors.password && (
                     <Text style={styles.error}>{errors.password}</Text>
                   )}
 
                   {/* Confirm Password */}
                   <Text style={styles.label}>Confirm Password</Text>
-                  <View style={styles.inputContainer}>
+                  <Animated.View 
+                    style={[
+                      styles.inputContainer,
+                      {
+                        borderColor: confirmPasswordBorderColor,
+                        shadowColor: focusedInput === 'confirmPassword' ? '#4E7AC7' : 'transparent',
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: focusedInput === 'confirmPassword' ? 0.3 : 0,
+                        shadowRadius: 5,
+                        elevation: focusedInput === 'confirmPassword' ? 3 : 0,
+                      }
+                    ]}
+                  >
                     <FontAwesome
                       name="lock"
                       size={20}
-                      color="#666"
+                      color={focusedInput === 'confirmPassword' ? '#4E7AC7' : '#666'}
                       style={styles.icon}
                     />
                     <TextInput
@@ -298,17 +422,21 @@ const handleSubmit = async (values) => {
                       secureTextEntry={!showConfirmPassword}
                       value={values.confirmPassword}
                       onChangeText={handleChange('confirmPassword')}
-                      onBlur={handleBlur('confirmPassword')}
+                      onBlur={() => {
+                        handleBlur('confirmPassword');
+                        handleBlur('confirmPassword');
+                      }}
+                      onFocus={() => handleFocus('confirmPassword')}
                     />
                     <TouchableOpacity onPress={toggleShowConfirmPassword}>
                       <Ionicons
                         name={showConfirmPassword ? 'eye-off' : 'eye'}
                         size={20}
-                        color="#666"
+                        color={focusedInput === 'confirmPassword' ? '#4E7AC7' : '#666'}
                         style={styles.icon}
                       />
                     </TouchableOpacity>
-                  </View>
+                  </Animated.View>
                   {touched.confirmPassword && errors.confirmPassword && (
                     <Text style={styles.error}>{errors.confirmPassword}</Text>
                   )}
@@ -321,7 +449,7 @@ const handleSubmit = async (values) => {
                           backgroundColor: isSubmitting ? '#3A5F9A' : '#4E7AC7',
                         },
                       ]}
-                      onPress={handleSubmit}
+                      onPress={() => handleSubmit()}
                       activeOpacity={0.9}
                       disabled={isSubmitting}
                     >
@@ -433,9 +561,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   logoImage: {
-    width: isTablet ? 120 : 100,
-    height: isTablet ? 120 : 100,
-    tintColor: '#fff',
+    width: isTablet ? 150 : 180,
+    height: isTablet ? 150 : 500,
   },
   title: {
     marginTop: isTablet ? 10 : 5,
@@ -459,19 +586,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderWidth: 1.5,
     borderRadius: 30,
     marginBottom: 5,
     paddingHorizontal: 20,
     height: isTablet ? 60 : 50,
     backgroundColor: '#f5f5f5',
+    transition: 'all 0.3s ease',
   },
   input: {
     flex: 1,
     paddingHorizontal: 10,
     height: '100%',
     color: '#333',
+    fontSize: isTablet ? 16 : 14,
   },
   icon: {
     marginRight: 10,
@@ -529,6 +657,7 @@ const styles = StyleSheet.create({
   footerText: {
     marginBottom: 10,
     color: '#666',
+    fontSize: isTablet ? 16 : 14,
   },
   error: {
     color: 'red',
@@ -543,7 +672,8 @@ const styles = StyleSheet.create({
     marginBottom: isTablet ? 20 : 15,
     letterSpacing: 1,
     color: '#666',
+    fontWeight: '500',
   },
 });
 
-export default SignupScreen;
+export default Signup;

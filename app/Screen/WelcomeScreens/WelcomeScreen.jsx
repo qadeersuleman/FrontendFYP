@@ -7,7 +7,7 @@ import {
   Dimensions,
   Animated,
   Easing,
-  Platform,
+  Image
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFonts } from "expo-font";
@@ -17,8 +17,7 @@ import {
   Poppins_500Medium,
 } from "@expo-google-fonts/poppins";
 import { Inter_400Regular } from "@expo-google-fonts/inter";
-import LottieView from "lottie-react-native";
-import AppButton from "../../components/AppButton";
+import { Colors } from "../../assets/colors";
 
 const { width, height } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -26,7 +25,6 @@ const isTablet = width >= 768;
 
 const WelcomeScreen = ({ navigation }) => {
   // Refs
-  const lottieRef = useRef(null);
   const animationComplete = useRef(false);
 
   // Animation values
@@ -48,11 +46,6 @@ const WelcomeScreen = ({ navigation }) => {
   useEffect(() => {
     if (!fontsLoaded) return;
 
-    // Start Lottie animation
-    if (lottieRef.current) {
-      lottieRef.current.play();
-    }
-
     // Combined entrance animations
     Animated.parallel([
       // Floating animation
@@ -72,14 +65,14 @@ const WelcomeScreen = ({ navigation }) => {
           }),
         ])
       ),
-      
+
       // Fade in animation
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: true,
       }),
-      
+
       // Slide up animation
       Animated.timing(slideUpAnim, {
         toValue: 0,
@@ -87,7 +80,7 @@ const WelcomeScreen = ({ navigation }) => {
         easing: Easing.out(Easing.exp),
         useNativeDriver: true,
       }),
-      
+
       // Scale animation
       Animated.timing(scaleAnim, {
         toValue: 1,
@@ -95,7 +88,7 @@ const WelcomeScreen = ({ navigation }) => {
         easing: Easing.elastic(1),
         useNativeDriver: true,
       }),
-      
+
       // Content fade in
       Animated.timing(contentOpacity, {
         toValue: 1,
@@ -103,7 +96,7 @@ const WelcomeScreen = ({ navigation }) => {
         delay: 500,
         useNativeDriver: true,
       }),
-      
+
       // Gradient animation
       Animated.loop(
         Animated.sequence([
@@ -127,9 +120,14 @@ const WelcomeScreen = ({ navigation }) => {
 
     return () => {
       // Clean up animations
-      [floatAnim, fadeAnim, slideUpAnim, scaleAnim, gradientAnim, contentOpacity].forEach(
-        (anim) => anim.stopAnimation()
-      );
+      [
+        floatAnim,
+        fadeAnim,
+        slideUpAnim,
+        scaleAnim,
+        gradientAnim,
+        contentOpacity,
+      ].forEach((anim) => anim.stopAnimation());
     };
   }, [fontsLoaded]);
 
@@ -141,14 +139,6 @@ const WelcomeScreen = ({ navigation }) => {
   const buttonScale = floatAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [1, 1.02, 1],
-  });
-
-  const gradientColors = gradientAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      ["#f9f9f9", "#e6f2ff"],
-      ["#e6f7ff", "#f0f9ff"],
-    ],
   });
 
   if (!fontsLoaded) {
@@ -211,14 +201,10 @@ const WelcomeScreen = ({ navigation }) => {
             },
           ]}
         >
-          <LottieView
-            ref={lottieRef}
-            source={require("../../assets/json/Brain.json")}
-            autoPlay
-            loop
-            style={styles.lottieLogo}
+          <Image
+            source={require("../../assets/images/2.png")}
+            style={styles.logoImage}
             resizeMode="contain"
-            speed={0.8}
           />
         </Animated.View>
 
@@ -244,7 +230,7 @@ const WelcomeScreen = ({ navigation }) => {
           </Text>
         </Animated.View>
 
-        {/* Animated Button */}
+        {/* Animated Button - Replaced AppButton with TouchableOpacity */}
         <Animated.View
           style={[
             styles.buttonWrapper,
@@ -254,12 +240,20 @@ const WelcomeScreen = ({ navigation }) => {
             },
           ]}
         >
-          <AppButton
-            onPress={() => navigation.navigate("SleepQuality")}
-            text="Get Started"
+          <TouchableOpacity
             style={styles.button}
-            textStyle={styles.buttonText}
-          />
+            onPress={() => navigation.navigate("HealthGoal")}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#4A8AFF", "#3B7AE3"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientButton}
+            >
+              <Text style={styles.buttonText}>Get Started</Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </Animated.View>
       </View>
 
@@ -303,10 +297,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  lottieLogo: {
-    width: "100%",
-    height: "100%",
-  },
   textContainer: {
     alignItems: "center",
     marginBottom: isTablet ? height * 0.06 : height * 0.08,
@@ -320,7 +310,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: isTablet ? 56 : isSmallDevice ? 36 : 42,
-    color: "#4A8AFF",
+    color: Colors.brand.primary,
     marginBottom: isTablet ? 24 : 16,
     textShadowColor: "rgba(74, 138, 255, 0.2)",
     textShadowOffset: { width: 0, height: 4 },
@@ -346,11 +336,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 8,
+  },
+  gradientButton: {
     height: isTablet ? 60 : 50,
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
     fontSize: isTablet ? 18 : 16,
     fontFamily: "Poppins-Medium",
+    color: "white",
+    textAlign: "center",
   },
   footer: {
     position: "absolute",
@@ -369,6 +365,10 @@ const styles = StyleSheet.create({
     fontSize: isTablet ? 16 : isSmallDevice ? 12 : 14,
     textDecorationLine: "underline",
   },
+  logoImage: {
+    width: 600,
+    height: 300
+  }
 });
 
 export default WelcomeScreen;

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,22 +6,59 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import Colors from "../../assets/colors";
-
-import HomeProfile from "../../Screen/Home/HeaderProfile";
-import HomeCards from "../../Screen/Home/HomeCards";
-import MindfulTracker from "./MindfulTracker";
 import AITherapySection from "./AITherapySection";
 import ArticlesSection from "./ArticlesSection";
+import HomeCards from "../../Screen/Home/HomeCards";
+import HomeProfile from "../../Screen/Home/HeaderProfile";
+import MindfulTracker from "./MindfulTracker";
+import Colors from "../../assets/colors";
+import { clearSession } from "../../utils/session";
+import Screen from "../../components/Screen";
+import YoutubeSection from "./YoutubeSection";
 
 const { width } = Dimensions.get("window");
 
-const Home = () => {
+const Home = ({ navigation }) => { // navigation prop is passed by React Navigation
+
+  const handleLogout = async () => {
+    try {
+      Alert.alert(
+        "Logout",
+        "Are you sure you want to logout?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel"
+          },
+          { 
+            text: "Logout", 
+            onPress: async () => {
+              console.log('Logout button pressed');
+              const success = await clearSession();
+              console.log('Clear session result:', success);
+              
+              // Navigate to Login screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              });
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+
   return (
-    <View style={styles.container}>
+    <Screen>
+      <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -31,48 +68,49 @@ const Home = () => {
         <MindfulTracker />
         <AITherapySection />
         <ArticlesSection />
+        <YoutubeSection />
       </ScrollView>
 
-      {/* Bottom Navigation - Updated to match the image */}
+      {/* Bottom Navigation */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("DataSend")}>
             <View style={[styles.iconContainer, styles.activeIconContainer]}>
               <Ionicons name="home" size={24} color={Colors.brand.primary} />
             </View>
             <Text style={styles.activeNavText}>Home</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Chat")}>
             <View style={styles.iconContainer}>
               <Ionicons name="chatbubble-outline" size={24} color={Colors.text.tertiary} />
             </View>
             <Text style={styles.navText}>Chat</Text>
           </TouchableOpacity>
           
-          {/* Center Button with different styling */}
-          <TouchableOpacity style={styles.centralNavItem}>
+          <TouchableOpacity style={styles.centralNavItem} onPress={() => navigation.navigate("Youtube")}>
             <View style={styles.centralIconContainer}>
-              <Text style={{fontSize : 30, color: "white", fontWeight: 'bold'}}> + </Text>
+              <Text style={{fontSize: 30, color: "white", fontWeight: 'bold'}}> + </Text>
             </View>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("ArticleDetail")}>
             <View style={styles.iconContainer}>
               <Ionicons name="book-outline" size={24} color={Colors.text.tertiary} />
             </View>
             <Text style={styles.navText}>Articles</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.navItem}>
+          <TouchableOpacity style={styles.navItem} onPress={handleLogout}>
             <View style={styles.iconContainer}>
               <Ionicons name="person-outline" size={24} color={Colors.text.tertiary} />
             </View>
-            <Text style={styles.navText}>Profile</Text>
+            <Text style={styles.navText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
+    </Screen>
   );
 };
 
@@ -83,7 +121,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    marginBottom: 80, // Added margin to prevent content from being hidden behind the nav
+    marginBottom: 80,
   },
   bottomNavContainer: {
     position: "absolute",
@@ -120,14 +158,14 @@ const styles = StyleSheet.create({
   centralNavItem: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: -25, // Pulls the button upward
+    marginTop: -25,
   },
   iconContainer: {
     padding: 8,
     borderRadius: 12,
   },
   activeIconContainer: {
-    backgroundColor: Colors.brand.primary + "20", // 20% opacity of primary color
+    backgroundColor: Colors.brand.primary + "20",
   },
   centralIconContainer: {
     backgroundColor: Colors.brand.primary,

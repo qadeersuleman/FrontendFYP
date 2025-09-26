@@ -92,7 +92,7 @@ const ExpressionAnalysis = ({route, navigation }) => {
         <Text style={styles.subtitle}>
           Freely write down anything that's on your mind.
         </Text>
-        <Text style={styles.centeredText}>Dr Freud.ai is here to listen...</Text>
+        <Text style={styles.centeredText}>MindMate is here to listen...</Text>
       </View>
 
       <KeyboardAvoidingView

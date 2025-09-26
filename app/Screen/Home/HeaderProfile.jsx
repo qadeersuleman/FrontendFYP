@@ -159,7 +159,7 @@ const HeaderProfile = () => {
         <Animated.Image
           source={{
             uri:
-              userData?.image ||
+              userData?.profile_image ||
               "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
           }}
           style={[styles.profileImage, imageStyle]}
@@ -197,7 +197,7 @@ const HeaderProfile = () => {
             >
               <Ionicons name="happy" size={20} color={"gold"} />
               <Text style={{ color: Colors.text.inverted, fontSize: 14 }}>
-                Happy
+                Neutral
               </Text>
             </View>
           </View>
@@ -221,7 +221,7 @@ const HeaderProfile = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.brand.primary,
-    paddingTop: 40,
+    paddingTop: 15,
     padding: 20,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,

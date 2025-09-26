@@ -18,7 +18,7 @@ import Title from "../../components/Assesment/Title";
 import Colors from "../../assets/colors";
 
 import { getSession, saveSession } from '../../utils/session'
-
+import { submitAudioAnalysis } from '../../Services/api'; // Import API functions
 
 
 
@@ -46,6 +46,9 @@ const SoundAnalysis = ({ route, navigation }) => {
 
   // Backend API URL - replace with your actual backend URL
   const API_URL = "http:/10.163.202.50:8000/api/audio-analysis/";
+
+  // Get assessment data from previous screens
+  const {health_goal, age, weight, mood, sleep_quality} = route.params;
 
   // Initialize audio permissions and create recordings directory
   useEffect(() => {
@@ -202,17 +205,19 @@ const SoundAnalysis = ({ route, navigation }) => {
     }
   };
 
- const sendToBackend = async (recordingUri) => {
+
+
+const sendToBackend = async (recordingUri) => {
   try {
     setUploadProgress(0);
     
-    // Get user data from AsyncStorage
+    // Get user data from AsyncStorage using the imported function
     const userData = await getSession();
     console.log("User data from session:", userData);
     
     if (!userData || !userData.id) {
       Alert.alert('Error', 'User not logged in. Please login again.');
-      navigation.navigate('Login'); // Redirect to login screen
+      navigation.navigate('Login');
       return;
     }
     
@@ -225,32 +230,16 @@ const SoundAnalysis = ({ route, navigation }) => {
     });
     
     // Add user data from session
-    formData.append('user_id', userData.id.toString()); // Ensure it's a string
+    formData.append('user_id', userData.id.toString());
     if (userData.username) formData.append('username', userData.username);
     if (userData.email) formData.append('email', userData.email);
     formData.append('timestamp', new Date().toISOString());
     
-    console.log("Sending to backend:", API_URL);
+    console.log("Sending audio analysis data to backend");
     
-    // Send to backend
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Accept': 'application/json',
-        // Don't set Content-Type - let React Native handle it
-      },
-    });
+    // Use the new submitAudioAnalysis function
+    const result = await submitAudioAnalysis(formData);
     
-    console.log("Response status:", response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Server error response:", errorText);
-      throw new Error(`Server returned ${response.status}: ${errorText}`);
-    }
-    
-    const result = await response.json();
     console.log("Server response:", result);
     
     // If successful, navigate to home screen
@@ -281,6 +270,9 @@ const SoundAnalysis = ({ route, navigation }) => {
     setUploadProgress(0);
   }
 };
+
+
+
   const playRecording = async (recordingUri, recordingId) => {
     try {
       // Stop any currently playing audio
@@ -388,7 +380,7 @@ const SoundAnalysis = ({ route, navigation }) => {
         <Text style={styles.recordButtonText}>Start Voice Analysis</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.viewRecordingsButton}
         activeOpacity={0.8}
         onPress={() => setShowRecordingsModal(true)}
@@ -397,7 +389,7 @@ const SoundAnalysis = ({ route, navigation }) => {
         <Text style={styles.viewRecordingsButtonText}>
           View Saved Recordings ({recordings.length})
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Voice Recording Modal */}
       <Modal

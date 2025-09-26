@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import axios from 'axios';
 import { saveSession } from "../../utils/session"
+import {loginUser} from "../../Services/api"
 
 const { width, height } = Dimensions.get('window');
 const isSmallDevice = width < 375;
@@ -32,6 +33,7 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [focusedInput, setFocusedInput] = useState(null);
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -39,6 +41,10 @@ const LoginScreen = () => {
   const logoScale = useRef(new Animated.Value(0.9)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
   const socialAnim = useRef(new Animated.Value(0)).current;
+
+  // Input focus animations
+  const emailBorderAnim = useRef(new Animated.Value(0)).current;
+  const passwordBorderAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Entry animations
@@ -68,18 +74,52 @@ const LoginScreen = () => {
     ]).start();
   }, []);
 
-// Add this function to get CSRF token
-const getCsrfToken = async () => {
-  try {
-    const response = await axios.get('http://10.245.2.50:8000/api/csrf-token/');
-    return response.data.csrfToken;
-  } catch (error) {
-    console.error('Error getting CSRF token:', error);
-    return null;
-  }
-};
+  // Handle input focus
+  const handleFocus = (inputName) => {
+    setFocusedInput(inputName);
+    if (inputName === 'email') {
+      Animated.timing(emailBorderAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    } else if (inputName === 'password') {
+      Animated.timing(passwordBorderAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
 
+  // Handle input blur
+  const handleBlur = (inputName) => {
+    setFocusedInput(null);
+    if (inputName === 'email') {
+      Animated.timing(emailBorderAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    } else if (inputName === 'password') {
+      Animated.timing(passwordBorderAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
 
+  // Interpolate border colors
+  const emailBorderColor = emailBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#ddd', '#4E7AC7']
+  });
+
+  const passwordBorderColor = passwordBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#ddd', '#4E7AC7']
+  });
 
   const validateForm = () => {
     let valid = true;
@@ -105,73 +145,65 @@ const getCsrfToken = async () => {
     return valid;
   };
 
+  const handleLogin = async () => {
+    if (!validateForm()) return;
 
-// Add this function to handle login
-const handleLogin = async () => {
-  if (!validateForm()) return;
-
-  setIsSubmitting(true);
-  try {
-    // Button press animation
-    Animated.sequence([
-      Animated.timing(buttonScale, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonScale, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-    
-    const response = await axios.post(
-      'http://192.168.100.11:8000/api/login/',
-      { email, password },
-      { 
-        headers: { 
-          'Content-Type': 'application/json',
-        },
+    setIsSubmitting(true);
+    try {
+      // Button press animation
+      Animated.sequence([
+        Animated.timing(buttonScale, {
+          toValue: 0.95,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonScale, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      
+      // Use the imported loginUser function
+      const response = await loginUser({ email, password });
+      
+      console.log('Login successful:', response);
+      
+      // Save user session with all the user data
+      await saveSession(response.user);
+      
+      // Check if user has completed profile and assessment
+      if (!response.user.hasCompletedProfile) {
+        navigation.navigate('Editprofile');
+      } else if (!response.user.hasCompletedAssessment) {
+        navigation.navigate('HealthGoal');
+      } else {
+        navigation.navigate('Home');
       }
-    );
-    
-    console.log('Login successful:', response.data);
-    
-    // Save user session
-    await saveSession(response.data.user);
-    
-    // Check if user has completed profile and assessment
-    if (!response.data.user.hasCompletedProfile) {
-      navigation.navigate('Editprofile');
-    } else if (!response.data.user.hasCompletedAssessment) {
-      navigation.navigate('Assessment');
-    } else {
-      navigation.navigate('Home');
-    }
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    let errorMessage = 'An error occurred during login';
-    
-    if (error.response) {
-      if (error.response.status === 403) {
-        errorMessage = 'Authentication failed. Please try again.';
-      } else if (error.response.status === 401) {
-        errorMessage = 'Invalid email or password';
-      } else if (error.response.data && error.response.data.error) {
-        errorMessage = error.response.data.error;
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      let errorMessage = 'An error occurred during login';
+      
+      // Error handling for the API structure
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response) {
+        // This preserves compatibility with direct axios errors
+        if (error.response.status === 403) {
+          errorMessage = 'Authentication failed. Please try again.';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Invalid email or password';
+        } else if (error.response.data && error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
       }
-    } else if (error.request) {
-      errorMessage = 'Network error. Please check your connection.';
+      
+      Alert.alert('Login Failed', errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    Alert.alert('Login Failed', errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  };
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -231,7 +263,7 @@ const handleLogin = async () => {
               />
               <Animated.View style={{ transform: [{ scale: logoScale }] }}>
                 <Image
-                  source={require('../../assets/images/logo.png')}
+                  source={require('../../assets/images/3.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
@@ -255,11 +287,23 @@ const handleLogin = async () => {
 
             {/* Email Input */}
             <Text style={styles.label}>Email Address</Text>
-            <View style={styles.inputContainer}>
+            <Animated.View 
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: emailBorderColor,
+                  shadowColor: focusedInput === 'email' ? '#4E7AC7' : 'transparent',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: focusedInput === 'email' ? 0.3 : 0,
+                  shadowRadius: 5,
+                  elevation: focusedInput === 'email' ? 3 : 0,
+                }
+              ]}
+            >
               <MaterialIcons
                 name="email"
                 size={20}
-                color="#666"
+                color={focusedInput === 'email' ? '#4E7AC7' : '#666'}
                 style={styles.icon}
               />
               <TextInput
@@ -273,19 +317,33 @@ const handleLogin = async () => {
                 }}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                onFocus={() => handleFocus('email')}
+                onBlur={() => handleBlur('email')}
               />
-            </View>
+            </Animated.View>
             {errors.email ? (
               <Text style={styles.errorText}>{errors.email}</Text>
             ) : null}
 
             {/* Password Input */}
             <Text style={styles.label}>Password</Text>
-            <View style={styles.inputContainer}>
+            <Animated.View 
+              style={[
+                styles.inputContainer,
+                {
+                  borderColor: passwordBorderColor,
+                  shadowColor: focusedInput === 'password' ? '#4E7AC7' : 'transparent',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: focusedInput === 'password' ? 0.3 : 0,
+                  shadowRadius: 5,
+                  elevation: focusedInput === 'password' ? 3 : 0,
+                }
+              ]}
+            >
               <FontAwesome
                 name="lock"
                 size={20}
-                color="#666"
+                color={focusedInput === 'password' ? '#4E7AC7' : '#666'}
                 style={styles.icon}
               />
               <TextInput
@@ -298,16 +356,18 @@ const handleLogin = async () => {
                   setPassword(text);
                   if (errors.password) setErrors({ ...errors, password: '' });
                 }}
+                onFocus={() => handleFocus('password')}
+                onBlur={() => handleBlur('password')}
               />
               <TouchableOpacity onPress={toggleShowPassword}>
                 <Ionicons
                   name={showPassword ? 'eye-off' : 'eye'}
                   size={20}
-                  color="#666"
+                  color={focusedInput === 'password' ? '#4E7AC7' : '#666'}
                   style={styles.icon}
                 />
               </TouchableOpacity>
-            </View>
+            </Animated.View>
             {errors.password ? (
               <Text style={styles.errorText}>{errors.password}</Text>
             ) : null}
@@ -435,9 +495,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   logoImage: {
-    width: isTablet ? 120 : 100,
-    height: isTablet ? 120 : 100,
-    tintColor: '#fff',
+    width: isTablet ? 150 : 180,
+    height: isTablet ? 150 : 500,
   },
   title: {
     marginTop: isTablet ? 10 : 5,
@@ -461,19 +520,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderWidth: 1.5,
     borderRadius: 30,
     marginBottom: 5,
     paddingHorizontal: 20,
     height: isTablet ? 60 : 50,
     backgroundColor: '#f5f5f5',
+    transition: 'all 0.3s ease',
   },
   input: {
     flex: 1,
     paddingHorizontal: 10,
     height: '100%',
     color: '#333',
+    fontSize: isTablet ? 16 : 14,
   },
   icon: {
     marginRight: 10,
@@ -531,6 +591,7 @@ const styles = StyleSheet.create({
   footerText: {
     marginBottom: 10,
     color: '#666',
+    fontSize: isTablet ? 16 : 14,
   },
   errorText: {
     color: 'red',
@@ -545,14 +606,17 @@ const styles = StyleSheet.create({
     marginBottom: isTablet ? 20 : 15,
     letterSpacing: 1,
     color: '#666',
+    fontWeight: '500',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: 20,
+    marginTop: 5,
   },
   forgotPasswordText: {
     color: '#4E7AC7',
     fontSize: isTablet ? 16 : 14,
+    fontWeight: '500',
   },
 });
 

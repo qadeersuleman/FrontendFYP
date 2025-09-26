@@ -112,7 +112,7 @@ export default function DetectEmotion() {
   const captureImage = async () => {
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync();
+a        const photo = await cameraRef.current.takePictureAsync();
         setImage(photo.uri);
         detectFaceAndEmotions(photo.uri);
       } catch (error) {

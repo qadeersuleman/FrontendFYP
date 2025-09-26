@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import {
   View,
   Text,
@@ -30,6 +29,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import RNPickerSelect from "react-native-picker-select";
 
 import {getSession, saveSession} from "../../utils/session"
+ import { updateUserProfile } from "../../Services/api"
+ import Screen from "../../components/Screen";
 
 const { width, height } = Dimensions.get("window");
 
@@ -109,101 +110,81 @@ const EditProfile = ({ navigation, route }) => {
 
   // In your handleSubmit function, fix the FormData creation:
   // Edit profile form
-  const handleSubmit = async (values) => {
-    setIsSubmitting(true);
-    try {
-      // Button animation
-      Animated.sequence([
-        Animated.timing(buttonScale, {
-          toValue: 0.95,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonScale, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
+ 
 
-      // Get the current user session to access user ID and email
-      const userSession = await getSession();
+const handleSubmit = async (values) => {
+  setIsSubmitting(true);
+  try {
+    // Button animation
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-      if (!userSession || !userSession.id) {
-        Alert.alert("Error", "User not logged in. Please login again.");
-        navigation.navigate("Login");
-        return;
-      }
+    const userSession = await getSession();
 
-      // Prepare form data (including image if selected)
-      const formData = new FormData();
-      formData.append("user_id", userSession.id); // Send user ID
-      formData.append("email", userSession.email); // Also send email as backup
-      formData.append("full_name", values.fullName);
-      formData.append("gender", values.gender);
-      formData.append(
-        "date_of_birth",
-        values.birthDate.toISOString().split("T")[0]
-      );
-      formData.append("phone_number", values.phoneNumber);
-
-      if (profileImage) {
-        // Extract filename from URI
-        let filename = profileImage.split("/").pop();
-
-        // Determine the file type
-        let match = /\.(\w+)$/.exec(filename);
-        let type = match ? `image/${match[1]}` : "image/jpeg";
-
-        formData.append("profile_image", {
-          uri: profileImage,
-          name: filename,
-          type: type,
-        });
-      }
-
-      // Send to your Django API
-      const response = await axios.post(
-        "http://192.168.100.11:8000/api/editprofile/",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      // Update the session with new user data
-      const updatedUser = {
-        ...userSession,
-        full_name: values.fullName,
-        gender: values.gender,
-        date_of_birth: values.birthDate.toISOString().split("T")[0],
-        phone_number: values.phoneNumber,
-        hasCompletedProfile: true, // Mark profile as completed
-        profile_image: response.data.user.profile_image, // Add profile image URL if available
-      };
-      await saveSession(updatedUser);
-
-      Alert.alert("Success", "Profile updated successfully!");
-
-      // Navigate to assessment screens after profile completion
-      navigation.navigate("HealthGoal");
-    } catch (error) {
-      console.error(
-        "Profile update error:",
-        error.response?.data || error.message
-      );
-      Alert.alert(
-        "Error",
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to update profile. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
+    if (!userSession || !userSession.id) {
+      Alert.alert("Error", "User not logged in. Please login again.");
+      navigation.navigate("Login");
+      return;
     }
-  };
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("user_id", userSession.id);
+    formData.append("email", userSession.email);
+    formData.append("full_name", values.fullName);
+    formData.append("gender", values.gender);
+    formData.append("date_of_birth", values.birthDate.toISOString().split("T")[0]);
+    formData.append("phone_number", values.phoneNumber);
+
+    if (profileImage) {
+      let filename = profileImage.split("/").pop();
+      let match = /\.(\w+)$/.exec(filename);
+      let type = match ? `image/${match[1]}` : "image/jpeg";
+
+      formData.append("profile_image", {
+        uri: profileImage,
+        name: filename,
+        type: type,
+      });
+    }
+
+    // 🔥 API.js ke function ko call karo
+    const response = await updateUserProfile(formData);
+
+    // Update session
+    const updatedUser = {
+      ...userSession,
+      full_name: values.fullName,
+      gender: values.gender,
+      date_of_birth: values.birthDate.toISOString().split("T")[0],
+      phone_number: values.phoneNumber,
+      hasCompletedProfile: true,
+      profile_image: response.user.profile_image, // response se update
+    };
+    await saveSession(updatedUser);
+
+    Alert.alert("Success", "Profile updated successfully!");
+    navigation.navigate("HealthGoal");
+  } catch (error) {
+    console.error("Profile update error:", error.message);
+    Alert.alert("Error", error.message || "Failed to update profile. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -217,7 +198,8 @@ const EditProfile = ({ navigation, route }) => {
   };
 
   return (
-    <KeyboardAvoidingView
+    <Screen>
+      <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1, backgroundColor: "#f8f9fa" }}
       keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
@@ -498,12 +480,13 @@ const EditProfile = ({ navigation, route }) => {
         </Animated.View>
       </View>
     </KeyboardAvoidingView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    height: 90,
+    height: 70,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -513,6 +496,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   backButton: {
     width: 40,
@@ -541,11 +526,11 @@ const styles = StyleSheet.create({
   },
   profilePictureContainer: {
     alignItems: "center",
-    marginVertical: height < 700 ? 10 : 20,
+    marginVertical: height < 700 ? 10 : 0,
   },
   profileImageWrapper: {
     position: "relative",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   profileImage: {
     width: height < 700 ? 100 : 120,
